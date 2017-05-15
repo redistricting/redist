@@ -5,6 +5,91 @@ library(grid)
 library(gridExtra)
 
 ##########################################################################
+# combinechains
+##########################################################################
+
+combinechains <- function(redistlist, nthin = 1){
+  
+  ## Measure the simulations
+  nchains <- length(redistlist)
+  nsims <- ncol(redistlist[[1]]$partitions)
+  ngeo <- nrow(redistlist[[1]]$partitions)
+  slotnames <- names(redistlist[[1]])
+  
+  ## Container objects
+  partitions <- matrix(NA, nrow = ngeo,
+                       ncol = (nsims * nchains / nthin))
+  distance_parity <- rep(NA, (nsims * nchains / nthin))
+  distance_original <- rep(NA, (nsims * nchains / nthin))
+  mhdecisions <- rep(NA, (nsims * nchains / nthin))
+  mhprob <- rep(NA, (nsims * nchains / nthin))
+  pparam <- rep(NA, (nsims * nchains / nthin))
+  beta_sequence <- rep(NA, (nsims * nchains / nthin))
+  constraint_pop <- rep(NA, (nsims * nchains / nthin))
+  constraint_compact <- rep(NA, (nsims * nchains / nthin))
+  constraint_segregation <- rep(NA, (nsims * nchains / nthin))
+  constraint_similar <- rep(NA, (nsims * nchains / nthin))
+  boundary_partitions <- rep(NA, (nsims * nchains / nthin))
+  boundaryratio <- rep(NA, (nsims * nchains / nthin))
+  if("mhdecisions_beta" %in% slotnames){     
+    mhdecisions_beta <- rep(NA, (nsims * nchains / nthin))
+    mhprob_beta <- rep(NA, (nsims * nchains / nthin))
+  }
+  
+  indthin <- which((1:nsims) %% nthin == 0)
+  
+  ## Fill
+  for(i in 1:nchains){
+    
+    ## Indices to fill
+    ind <- ((i - 1) * (nsims / nthin) + 1):(i * (nsims / nthin))
+    
+    ## Store
+    partitions[1:ngeo, ind] <- redistlist[[i]]$partitions[,indthin]
+    distance_parity[ind] <- redistlist[[i]]$distance_parity[indthin]
+    distance_original[ind] <- redistlist[[i]]$distance_original[indthin]
+    mhdecisions[ind] <- redistlist[[i]]$mhdecisions[indthin]
+    mhprob[ind] <- redistlist[[i]]$mhprob[indthin]
+    pparam[ind] <- redistlist[[i]]$pparam[indthin]
+    beta_sequence[ind] <- redistlist[[i]]$beta_sequence
+    constraint_pop[ind] <- redistlist[[i]]$constraint_pop[indthin]
+    constraint_compact[ind] <- redistlist[[i]]$constraint_compact[indthin]
+    constraint_segregation[ind] <- redistlist[[i]]$constraint_segregation[indthin]
+    constraint_similar[ind] <- redistlist[[i]]$constraint_similar[indthin]
+    boundary_partitions[ind] <- redistlist[[i]]$boundary_partitions[indthin]
+    boundaryratio[ind] <- redistlist[[i]]$boundaryratio[indthin]
+    if("mhdecisions_beta" %in% slotnames){
+      mhdecisions_beta[ind] <- redistlist[[i]]$mhdecisions_beta[indthin]
+      mhprob_beta[ind] <- redistlist[[i]]$mhprob_beta[indthin]
+    }
+    
+  }
+  
+  ## Create output object
+  if("mhdecisions_beta" %in% slotnames){
+    out <- list(partitions = partitions, distance_parity = distance_parity, distance_original = distance_original,
+                mhdecisions = mhdecisions, mhprob = mhprob, pparam = pparam, beta_sequence = beta_sequence,
+                constraint_pop = constraint_pop, constraint_compact = constraint_compact,
+                constraint_segregation = constraint_segregation, constraint_similar = constraint_similar,
+                boundary_partitions = boundary_partitions, boundaryratio = boundaryratio,
+                mhdecisions_beta = mhdecisions_beta, mhprob_beta = mhprob_beta)
+  }else{
+    out <- list(partitions = partitions, distance_parity = distance_parity, distance_original = distance_original,
+                mhdecisions = mhdecisions, mhprob = mhprob, pparam = pparam, beta_sequence = beta_sequence,
+                constraint_pop = constraint_pop, constraint_compact = constraint_compact,
+                constraint_segregation = constraint_segregation, constraint_similar = constraint_similar,
+                boundary_partitions = boundary_partitions, boundaryratio = boundaryratio)
+  }
+  class(out) <- "redist"
+  
+  return(out)
+  
+}
+
+
+
+
+##########################################################################
 # map.summary
 # This function produces a list of summary statistics for
 # a redist.mcmc output object and a vector of party votes
