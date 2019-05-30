@@ -164,7 +164,8 @@ List swMH(List aList,
 
   // Store number of connected components along the boundary, boundary weights
   NumericVector boundarypartitions_store(nsims);
-  NumericVector boundaryratio_store(nsims);
+  NumericVector boundaryratio_exact_store(nsims);
+  NumericVector boundaryratio_apprx_store(nsims);
 
   // Store sequence of betas - geyer thompson
   NumericVector betaseq_store(nsims);
@@ -264,21 +265,22 @@ List swMH(List aList,
     }while(as<int>(swap_partitions["goodprop"]) == 0);
     
     // Get new boundary, then get number of partitions
+    aList_con_prop = genAlConn(aList, as<NumericVector>(swap_partitions["proposed_partition"]));
+    boundary_prop = findBoundary(aList, aList_con_prop);
+    boundary_partitions_prop = bsearch_boundary(cutedge_lists["connectedlist"],
+						boundary_prop);
+      
+    // Correct npartitions to only include boundary partitions that don't break contiguity
+    int nvalid_current = count_valid(aList, boundary_partitions["bsearch"], cdvec);
+    int nvalid_prop = count_valid(aList, boundary_partitions_prop["bsearch"],
+				  swap_partitions["proposed_partition"]);
+    boundaryratio_exact_store(k) = (double)nvalid_current / nvalid_prop;
+    boundaryratio_apprx_store(k) = as<double>(boundary_partitions["npartitions"]) /
+      as<double>(boundary_partitions_prop["npartitions"]);
     if(exact_mh == 1){
-      aList_con_prop = genAlConn(aList, as<NumericVector>(swap_partitions["proposed_partition"]));
-      boundary_prop = findBoundary(aList, aList_con_prop);
-      boundary_partitions_prop = bsearch_boundary(cutedge_lists["connectedlist"],
-						  boundary_prop);
-      
-      // Correct npartitions to only include boundary partitions that don't break contiguity
-      int nvalid_current = count_valid(aList, boundary_partitions["bsearch"], cdvec);
-      int nvalid_prop = count_valid(aList, boundary_partitions_prop["bsearch"],
-				    swap_partitions["proposed_partition"]);
-      
       // Modify metropolis-hastings ratio
       swap_partitions["mh_prob"] = as<double>(swap_partitions["mh_prob"]) *
 	pow((double)nvalid_current / nvalid_prop, (double)p);
-      boundaryratio_store(k) = pow((double)nvalid_current / nvalid_prop, (double)p);
     }
     
     //////////////////////////////////////////
@@ -572,7 +574,8 @@ List swMH(List aList,
   out["constraint_segregation"] = psisegregation_store;
   out["constraint_similar"] = psisimilar_store;
   out["boundary_partitions"] = boundarypartitions_store;
-  out["boundaryratio"] = boundaryratio_store;
+  out["boundaryratio_exact"] = boundaryratio_exact_store;
+  out["boundaryratio_apprx"] = boundaryratio_apprx_store;
   if((anneal_beta_population == 1) || (anneal_beta_compact == 1) ||
      (anneal_beta_segregation == 1) || (anneal_beta_similar == 1)){
     out["mhdecisions_beta"] = decision_betaseq_store;
