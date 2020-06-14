@@ -30,16 +30,24 @@ class redist_aList {
      aList: full adjacency list of geographic units
      
      cdvec: initial vector of congressional district assignments
+     
      popvec: vector of populations
+     
      cd_pop_vec: congressional district populations 
 		 
      eprob: edgecut probability
+     
+     mh_prob: current metropolis-hastings probability
 		 
      lambda: parameter for conducting multiple swaps
 		 
    */
 	
   public:
+	
+    // Constructor
+    void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l);
+    void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e);
 	
     // Function to generate initial vector of populations
     NumericVector init_pop(arma::vec cds);
@@ -88,18 +96,49 @@ class redist_aList {
     int split_check();
 	
     // Function to update district populations
-    void update_distpop(NumericVector prop_partition,
+    void update_cd_pop_vec(NumericVector prop_partition,
                         int prop_cd,
                         int curr_cd);
-			
+  
+    // Function to update the edgecut probability
+    void update_eprob(double e); 
+  
     // Function to update the metropolis-hastings probability for a swap
     void update_mhprob(NumericVector prop_partition,
                        arma::vec cds,		     
                        int prop_cd);
-	
+	  
+    // Function to update lambda
+    void update_lambda(double l); 
+  
     // Function to accept or reject swaps
     int mh_decision();
 		
+}
+
+// Constructor
+void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l) 
+{
+
+  aList = a;
+  cdvec = c;
+  popvec = p;
+  cd_pop_vec = c2;
+  eprob = e;
+  mh_prob = m;
+  lambda = l;
+  
+}
+
+void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e) 
+{
+
+  aList = a;
+  cdvec = c;
+  popvec = p;
+  cd_pop_vec = c2;
+  eprob = e;
+
 }
 
 // Function to generate initial vector of populations
@@ -779,7 +818,7 @@ int redist_aList::split_check(List adjcheck_out, NumericVector cds_prop)
 }
 
 // Function to update district populations
-void redist_aList::update_distpop(NumericVector prop_partition,
+void redist_aList::update_cd_pop_vec(NumericVector prop_partition,
 			          int prop_cd,
 			          int curr_cd)
 {
@@ -813,6 +852,14 @@ void redist_aList::update_distpop(NumericVector prop_partition,
 
   cd_pop_vec = distpop_vec_clone;
 
+}
+
+// Function to update the edgecut probability
+void update_eprob(double e)
+{
+  
+  eprob = e;
+  
 }
 
 // Function to update the metropolis-hastings probability for a swap
@@ -864,6 +911,14 @@ void redist_aList::update_mhprob(NumericVector prop_partition,
   // Recalculate mh probability
   mh_prob = (double) mh_prob * ((double)pow(1 - eprob, c1) / pow(1 - eprob, c2));
 
+}
+
+// Function to update lambda
+void update_lambda(double l)
+{
+  
+  lambda = l;
+  
 }
 
 // Function to accept or reject swaps
