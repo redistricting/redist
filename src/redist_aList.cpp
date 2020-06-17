@@ -117,7 +117,7 @@ class redist_aList {
 }
 
 // Constructor
-void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l) 
+void redist_aList::init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l) 
 {
 
   aList = a;
@@ -130,7 +130,7 @@ void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, dou
   
 }
 
-void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e) 
+void redist_aList::init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e) 
 {
 
   aList = a;
