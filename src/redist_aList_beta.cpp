@@ -26,13 +26,19 @@ class redist_aList_beta: public redist_aList {
     
     NumericMatrix ssdmat;
     
-    List betas = List::create(_["population"] = 0.0, _["compact"] = 0.0, _["segregation"] = 0.0, _["similar"] = 0.0);
-    
-    List anneals = List::create(_["population"] = 0, _["compact"] = 0, _["segregation"] = 0, _["similar"] = 0);
+    NumericVector betas = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
+                                                Named("segregation") = 0.0, Named("similar") = 0.0);
+
+    NumericVector anneals = NumericVector::create(Named("population") = 0, Named("compact") = 0, 
+                                                Named("segregation") = 0, Named("similar") = 0);
   
     List constraint_vals;
   
     NumericVector current_dists;
+  
+    NumericVector weights;
+  
+    int adjswap = 1
 
     /* Inputs to function:
      
@@ -65,7 +71,11 @@ class redist_aList_beta: public redist_aList {
      
        anneal_beta_similar: flag for whether to anneal the beta similarity parameter
      
-     current_cds: current vector of congressional district assignments
+     current_dists: current vector of congressional district assignments
+     
+     weights: prior weights on the beta sequence
+     
+     adjswap: flag - do we want adjacent swaps? default to 1
      
      */
   
@@ -79,7 +89,15 @@ class redist_aList_beta: public redist_aList {
     // Modifiers for constraint-related values
   
     // Function to calculate the strength of the beta constraint for population
-    List calc_betapop(arma::vec new_dists)
+    List calc_betapop(arma::vec new_dists);
+    
+    // Function that applies the Geyer Thompson algorithm for simulated tempering
+    List changeBeta(arma::vec betavec,
+		                double beta,
+		                double constraint,
+		                NumericVector weights,
+		                int adjswap = 1)
+    
       
     // 
 
@@ -176,6 +194,105 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
 
 }
 
+// Function that applies the Geyer Thompson algorithm for simulated tempering
+List redist_aList_beta::changeBeta(double beta, double constraint)
+{
+  
+  /* Inputs to function 
+     
+     beta: current value of the beta constraint
+     
+     constraint: the evaluation of the constraint on the current plan
+     
+   */
+  
+  // Find beta in betas
+  arma::uvec findBetaVec = find(betas == beta);
+  int findBeta = findBetaVec(0);
+
+  // Object to test whether beta is at RHS of vector
+  int betaLoc = betas.size() - 1;
+
+  // Get transition probabilities and propose a new beta
+  double qij;
+  double qji;
+  double wi;
+  double wj;
+  double propBeta;
+
+  // Procedure if conducting adjacent swaps
+  if(adjswap == 1){
+    if(findBeta == 0){ // At first element in betas
+      qij = 1;
+      qji = .5;
+      wi = weights(0);
+      wj = weights(1);
+      propBeta = betas(1);
+    } else if(findBeta == betaLoc){ // At last element in betas
+      qij = 1;
+      qji = .5;
+      wi = weights(betaLoc);
+      wj = weights(betaLoc - 1);
+      propBeta = betas(betaLoc - 1);
+    } else{ // Anywhere in the middle of betas
+      qij = .5;
+      qji = .5;
+      wi = weights(findBeta);
+      arma::vec betaswitch = runif(1);
+      if(betaswitch(0) < .5){
+	      propBeta = betas(findBeta - 1);
+	      wj = weights(findBeta - 1);
+      }
+      if(betaswitch(0) >= .5){
+	      propBeta = betas(findBeta + 1);
+	      wj = weights(findBeta + 1);
+      }
+    }
+  } else{
+    // Procedure if not conducting adjacent swaps
+    // qij = qji in non-adjacent framework, don't have to worry abt end units
+    qij = 1;
+    qji = 1;
+
+    // Draw element from betavec
+    arma::vec rand_randindex = runif(1, 0, 1000000000);
+    int randindex = fmod(rand_randindex(0), betaLoc);
+
+    // Weight wi 
+    wi = weights(findBeta);
+
+    // Draw the proposed beta value
+    if(randindex < findBeta){
+      propBeta = betas(randindex);
+      wj = weights(randindex);
+    } else{
+      propBeta = betas(randindex + 1);
+      wj = weights(randindex + 1);
+    }
+
+  }
+
+  // Accept or reject the proposal
+  double mhprobGT = (double) exp(constraint * (propBeta - beta)) * wj / wi * qji / qij;
+  if(mhprobGT > 1){
+    mhprobGT = 1;
+  }
+  arma::vec testkeepGT = runif(1);
+  int decision = 0;
+  if(testkeepGT(0) <= mhprobGT){
+    decision++;
+    beta = propBeta;
+  }
+
+  // Create output
+  List out;
+  out["beta"] = beta;
+  out["mh_decision"] = decision;
+  out["mh_prob"] = mhprobGT;
+
+  return out;
+
+}
 
 
 
