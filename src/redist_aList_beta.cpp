@@ -2,7 +2,7 @@
 // Author: Rei Yatsuhashi
 // Institution: American School In Japan
 // Date Created: 2020/06/17
-// Date Modified: 2020/06/17
+// Date Modified: 2020/06/20
 // Purpose: Class for Constraints in Redistricting Adjacency
 /////////////////////////////////////
 
