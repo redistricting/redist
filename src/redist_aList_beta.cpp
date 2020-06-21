@@ -34,8 +34,6 @@ class redist_aList_beta: public redist_aList {
     NumericVector anneals = NumericVector::create(Named("population") = 0, Named("compact") = 0, 
                                                   Named("segregation") = 0, Named("similar") = 0);
   
-    List constraint_vals;
-  
     NumericVector current_dists;
   
     NumericVector distswitch;
