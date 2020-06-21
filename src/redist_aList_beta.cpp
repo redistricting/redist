@@ -31,6 +31,8 @@ class redist_aList_beta: public redist_aList {
     List anneals = List::create(_["population"] = 0, _["compact"] = 0, _["segregation"] = 0, _["similar"] = 0);
   
     List constraint_vals;
+  
+    NumericVector current_dists;
 
     /* Inputs to function:
      
@@ -62,6 +64,8 @@ class redist_aList_beta: public redist_aList {
        anneal_beta_segregation: flag for whether to anneal the beta segregation parameter
      
        anneal_beta_similar: flag for whether to anneal the beta similarity parameter
+     
+     current_cds: current vector of congressional district assignments
      
      */
   
@@ -107,12 +111,10 @@ void redist_aList_beta::init_annealvals(IntegerVector a)
 }
 
 // Function to calculate the strength of the beta constraint for population
-List calc_betapop(arma::vec new_dists)
+List redist_aList_beta::calc_betapop(arma::vec new_dists)
 {
 
   /* Inputs to function
-  
-     current_dists: vector of the current cong district assignments
      
      new_dists: vector of the new cong district assignments
      
@@ -122,9 +124,9 @@ List calc_betapop(arma::vec new_dists)
   
   NumericVector distswitch;
   
-  for(int i = 0; i < cdvec.size(); i++){
-    if(is_true(any(distswitch == cdvec(i))) == FALSE){
-      distswitch.push_back(cdvec(i));
+  for(int i = 0; i < current_dists.size(); i++){
+    if(is_true(any(distswitch == current_dists(i))) == FALSE){
+      distswitch.push_back(current_dists(i));
     }
   }
 	  
@@ -145,7 +147,7 @@ List calc_betapop(arma::vec new_dists)
     int pop_new = 0;
     int pop_old = 0;
     arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(cdvec == distswitch(i));
+    arma::uvec current_cds = find(current_dists == distswitch(i));
 
     // Get population of the old districts
     for(int j = 0; j < new_cds.size(); j++){
@@ -173,6 +175,8 @@ List calc_betapop(arma::vec new_dists)
   return out;
 
 }
+
+
 
 
 
