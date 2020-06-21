@@ -91,8 +91,6 @@ class redist_aList_beta: public redist_aList {
     void update_current_dists(NumericVector c);
     void update_distswitch();
 
-    // Modifiers for constraint-related values
-
     // Function that applies the Geyer Thompson algorithm for simulated tempering
     List changeBeta(double beta, double constraint);
   
