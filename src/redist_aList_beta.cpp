@@ -31,8 +31,7 @@ class redist_aList_beta: public redist_aList {
     NumericVector betas = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
                                                 Named("segregation") = 0.0, Named("similar") = 0.0);
 
-    NumericVector anneals = NumericVector::create(Named("population") = 0, Named("compact") = 0, 
-                                                  Named("segregation") = 0, Named("similar") = 0);
+    double anneals;
   
     NumericVector current_dists;
   
@@ -63,15 +62,7 @@ class redist_aList_beta: public redist_aList {
      
        beta_similar: strength of constraint for examining plans similar to original district
      
-     anneals: {anneal_beta_population, anneal_beta_compact, anneal_beta_segregation, anneal_beta_similar}
-     
-       anneal_beta_population: flag for whether to anneal the beta pop parameter
-     
-       anneal_beta_compact: flag for whether to anneal the beta compactness parameter
-     
-       anneal_beta_segregation: flag for whether to anneal the beta segregation parameter
-     
-       anneal_beta_similar: flag for whether to anneal the beta similarity parameter
+     anneals: temperature parameter between 0 and 1 for Gibbs-type distributino
      
      current_dists: current vector of congressional district assignments
      
@@ -86,7 +77,7 @@ class redist_aList_beta: public redist_aList {
     // Constructor for constraint-related values
     void init_constraints(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd);
     void init_betavals(NumericVector b);
-    void init_annealvals(IntegerVector a);
+    void init_annealvals(double a);
     
     void update_current_dists(NumericVector c);
     void update_distswitch();
@@ -127,7 +118,7 @@ void redist_aList_beta::init_betavals(NumericVector b)
   
 }
 
-void redist_aList_beta::init_annealvals(IntegerVector a)
+void redist_aList_beta::init_annealvals(double a)
 {
   
   anneals = a;
