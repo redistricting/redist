@@ -2,7 +2,7 @@
 // Author: Rei Yatsuhashi
 // Institution: American School In Japan
 // Date Created: 2020/06/11
-// Date Modified: 2020/06/15
+// Date Modified: 2020/06/25
 // Purpose: Preliminary Class for Redistricting Adjacency
 /////////////////////////////////////
 
@@ -48,7 +48,11 @@ class redist_aList {
     // Constructor
     void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l);
     void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e);
-	
+
+    NumericVector get_cdvec();
+    NumericVector get_popvec();
+    int get_lambda();
+        
     // Function to generate initial vector of populations
     NumericVector init_pop(arma::vec cds);
 			
@@ -112,7 +116,7 @@ class redist_aList {
     void update_lambda(double l); 
   
     // Function to accept or reject swaps
-    int mh_decision();
+    int mh_decision(double prob);
 		
 }
 
@@ -139,6 +143,27 @@ void redist_aList::init_values(List a, NumericVector c, NumericVector p, Numeric
   cd_pop_vec = c2;
   eprob = e;
 
+}
+
+NumericVector redist_aList::get_cdvec() 
+{
+  
+  return cdvec;
+  
+}
+
+NumericVector redist_aList::get_popvec() 
+{
+  
+  return popvec;
+  
+}
+
+int redist_aList::get_lambda() 
+{
+  
+  return lambda;
+  
 }
 
 // Function to generate initial vector of populations
@@ -922,7 +947,7 @@ void update_lambda(double l)
 }
 
 // Function to accept or reject swaps
-int redist_aList::mh_decision()
+int redist_aList::mh_decision(double prob)
 {
   
   // Initialize decision
@@ -930,8 +955,8 @@ int redist_aList::mh_decision()
 
   // Get acceptance probability
   double acc_prob;
-  if(mh_prob < 1){
-    acc_prob = mh_prob;
+  if(prob < 1){
+    acc_prob = prob;
   } else{
     acc_prob = 1;
   }
