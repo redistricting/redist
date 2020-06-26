@@ -230,7 +230,7 @@ List swMH(redist_aList_beta region,
 				   beta_similar,
 				   ssd_denom);
 
-      }while(as<int>(swap_partitions["goodprop"]) == 0); */
+    }while(as<int>(swap_partitions["goodprop"]) == 0); */
       
     // Get new boundary, then get number of partitions
     if(exact_mh == 1){
