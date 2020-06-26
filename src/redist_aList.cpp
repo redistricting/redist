@@ -49,6 +49,11 @@ class redist_aList {
     void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l);
     void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e);
 
+    void set_cdvec(NumericVector c);
+    void set_cd_pop_vec(NumericVector c);
+    void redist_aList::set_eprob(double e);
+    void redist_aList::set_lambda(int l); 
+  
     NumericVector get_cdvec();
     NumericVector get_popvec();
     int get_lambda();
@@ -143,6 +148,34 @@ void redist_aList::init_values(List a, NumericVector c, NumericVector p, Numeric
   cd_pop_vec = c2;
   eprob = e;
 
+}
+
+void redist_aList::set_cdvec(NumericVector c) 
+{
+  
+  cdvec = c;
+  
+}
+
+void redist_aList::set_cd_pop_vec(NumericVector c) 
+{
+  
+  cd_pop_vec = c;
+  
+}
+
+void redist_aList::set_eprob(double e) 
+{
+  
+  eprob = e;
+  
+}
+
+void redist_aList::set_lambda(int l) 
+{
+  
+  lambda = l;
+  
 }
 
 NumericVector redist_aList::get_cdvec() 
