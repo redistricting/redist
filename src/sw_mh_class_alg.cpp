@@ -11,8 +11,8 @@
 #include <RcppArmadilloExtensions/sample.h>
 #include <time.h>
 #include <R.h>
-#include "redist_aList.cpp"
-#include "redist_aList_beta.cpp"
+/* convert to header files: #include "redist_aList.cpp"
+#include "redist_aList_beta.cpp" */
 #include "sw_mh_helper.h"
 #include "make_swaps_helper.h"
 #include "constraint_calc_helper.h"
