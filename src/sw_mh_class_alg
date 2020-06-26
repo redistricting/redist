@@ -1,0 +1,22 @@
+/////////////////////////////////////
+// Author: Rei Yatsuhashi
+// Institution: American School In Japan
+// Date Created: 2020/06/26
+// Date Modified: 2020/06/26
+// Purpose: swMH() function modified with new redist_aList_beta class
+/////////////////////////////////////
+
+// Header files
+#include <RcppArmadillo.h>
+#include <RcppArmadilloExtensions/sample.h>
+#include <time.h>
+#include <R.h>
+#include "redist_aList.cpp"
+#include "redist_aList_beta.cpp"
+
+using namespace Rcpp; 
+
+/* Primary function to run redistricting algorithm. An implementation of 
+   Algorithm 1 in Barbu and Zhu (2005) using classes. */
+// [[Rcpp::export]]
+
