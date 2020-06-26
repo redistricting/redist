@@ -8,7 +8,7 @@
 
 // Header files
 #include <RcppArmadillo.h>
-#include <redist_aList.cpp>
+#include "redist_aList.cpp"
 
 using namespace Rcpp;
 
