@@ -30,8 +30,6 @@ class redist_aList_beta: public redist_aList {
     
     NumericVector betas = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
                                                 Named("segregation") = 0.0, Named("similar") = 0.0);
-
-    double anneals;
   
     NumericVector current_dists;
   
@@ -62,8 +60,6 @@ class redist_aList_beta: public redist_aList {
      
        beta_similar: strength of constraint for examining plans similar to original district
      
-     anneals: temperature parameter between 0 and 1 for Gibbs-type distributino
-     
      current_dists: current vector of congressional district assignments
      
      distswitch: vector containing the old district, and the proposed new district
@@ -80,7 +76,10 @@ class redist_aList_beta: public redist_aList {
     void init_annealvals(double a);
     
     void update_current_dists(NumericVector c);
-    void update_distswitch();
+    void update_distswitch(); 
+    NumericVector get_betas();
+    double get_pct_dist_parity();
+    void update_betas(double b, string s);
 
     // Function that applies the Geyer Thompson algorithm for simulated tempering
     List changeBeta(double beta, double constraint);
@@ -90,7 +89,7 @@ class redist_aList_beta: public redist_aList {
     
     // Function to calculate the strength of the beta constraint for compactness
     // Fryer and Holden 2011 RPI index
-    List calc_betacompact(arma::vec new_dists, NumericMatrix ssdmat, double denominator = 1.0);
+    List calc_betacompact(arma::vec new_dists, double denominator = 1.0);
 	
     // Function to constrain by segregating a group
     List calc_betasegregation(arma::vec new_dists);
@@ -142,6 +141,28 @@ void redist_aList_beta::update_distswitch()
   }
   
 }
+
+NumericVector redist_aList_beta::get_betas() 
+{
+  
+  return betas;
+  
+}
+
+double redist_aList_beta::get_pct_dist_parity() 
+{
+  
+  return pct_dist_parity;
+  
+}
+
+void redist_aList_beta::update_betas(double b, string s)
+{
+
+  betas[s] = b;
+  
+}
+
 
 // Function that applies the Geyer Thompson algorithm for simulated tempering
 List redist_aList_beta::changeBeta(double beta, double constraint)
@@ -304,14 +325,11 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
 // Function to calculate the strength of the beta constraint for compactness
 // Fryer and Holden 2011 RPI index
 List calc_betacompact(arma::vec new_dists,
-		      NumericMatrix ssdmat,
 		      double denominator = 1.0){
 
   /* Inputs to function:
   
      new_dists: vector of the new cong district assignments
-     
-     ssdmat: squared distance matrix
      
      denominator: normalizing constant for rpi
      
