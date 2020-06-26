@@ -301,7 +301,7 @@ List swMH(redist_aList_beta region,
       
 	     // Change beta
 	     region.update_betas(as<double>(gt_out["beta"]), "population");
-        betas["population"] = as<double>(gt_out["beta"]);
+             betas["population"] = as<double>(gt_out["beta"]);
       
 	     // Store the output of geyer thompson
 	     if(k < nsims){
@@ -338,9 +338,8 @@ List swMH(redist_aList_beta region,
 	     }
 	
 	     // Change beta
-        betas["compact"] = as<double>(gt_out["beta"]);
-        region.update_betas(betas["compact"], "compact");
-	   
+       betas["compact"] = as<double>(gt_out["beta"]);
+       region.update_betas(betas["compact"], "compact");
 	
 	     // Store the output of geyer thompson
 	     if(k < nsims){
@@ -380,7 +379,7 @@ List swMH(redist_aList_beta region,
           
 	     // Change beta
 	     betas["segregation"] = as<double>(gt_out["beta"]);
-        region.update_betas(betas["segregation"], "segregation");
+             region.update_betas(betas["segregation"], "segregation");
 
 	     // Store output of geyer thompson
 	     if(k < nsims){
@@ -420,7 +419,7 @@ List swMH(redist_aList_beta region,
 
 	     // Change beta
 	     betas["similar"] = as<double>(gt_out["beta"]);
-        region.update_betas(betas["similar"], "similar");
+       region.update_betas(betas["similar"], "similar");
 
 	     // Store output of geyer thompson
 	     if(k < nsims){
@@ -440,8 +439,10 @@ List swMH(redist_aList_beta region,
     if(decision == 1){
       // Update cds to proposed cds
       cdvec = clone(as<NumericVector>(swap_partitions["proposed_partition"]));
+	    region.set_cdvec(cdvec);
       // Update district_pops to proposed district pops
       district_pops = clone(as<NumericVector>(swap_partitions["updated_cd_pops"]));
+      region.set_cd_pop_vec(district_pops);
       // Store number of boundary partitions
       boundarypartitions_store[k] = boundary_partitions["npartitions"];
     } else{
@@ -475,7 +476,7 @@ List swMH(redist_aList_beta region,
       if(adapt_eprob == 1){
 	     Rcout << "Edgecut Probability: " << eprob << std::endl;
       }
-      Rcout << "Metropolis acceptance ratio: "<< (double)decision_counter / (k-1) << std::endl << std::endl;
+      Rcout << "Metropolis acceptance ratio: "<< (double) decision_counter / (k-1) << std::endl << std::endl;
     }
   
     // Change eprob, lambda if adaptive
@@ -484,17 +485,21 @@ List swMH(redist_aList_beta region,
 	     if((double)decision_counter / (k-1) > .4){
 	       if(adapt_lambda == 1 && lambda < floor((double)aList.size() / 10)){
 	         lambda++;
+           region.set_lambda(lambda);
 	       }
 	       if(adapt_eprob == 1 && eprob < .5){
 	         eprob = eprob + .01;
+           region.set_eprob(eprob);
 	       }
 	     }
 	     if((double)decision_counter / (k-1) < .2){
 	       if(adapt_lambda == 1 && lambda > 0){
 	         lambda--;
+           region.set_lambda(lambda);
 	       }
 	       if(adapt_eprob == 1 && eprob > 0){
 	         eprob = eprob - .01;
+           region.set_eprob(eprob);
 	       }
 	     }
       }
@@ -538,13 +543,6 @@ List swMH(redist_aList_beta region,
   
 }
     
-    
-    
-      
-      
-    
-    
-
 
 }
 
