@@ -57,6 +57,7 @@ class redist_aList {
     void redist_aList::set_eprob(double e);
     void redist_aList::set_lambda(int l); 
   
+    List get_aList();
     NumericVector get_cdvec();
     NumericVector get_cdorigvec();
     NumericVector get_popvec();
@@ -184,6 +185,14 @@ void redist_aList::set_lambda(int l)
   lambda = l;
   
 }
+
+List redist_aList::get_aList() 
+{
+  
+  return aList;
+  
+}
+
 
 NumericVector redist_aList::get_cdvec() 
 {
