@@ -18,6 +18,7 @@ class redist_aList {
   private: 
 
     List aList;
+    NumericVector cdorigvec;
     NumericVector cdvec;
     NumericVector popvec;
     NumericVector cd_pop_vec;
@@ -29,7 +30,9 @@ class redist_aList {
 	
      aList: full adjacency list of geographic units
      
-     cdvec: initial vector of congressional district assignments
+     cdorigvec: initial vector of congressional district assignments
+     
+     cdvec: current vector of congressional district assignments
      
      popvec: vector of populations
      
@@ -46,8 +49,8 @@ class redist_aList {
   public:
 	
     // Constructor
-    void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l);
-    void init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e);
+    void init_values(List a, NumericVector c, NumericVector c2, NumericVector p, NumericVector c3, double e, double m, int l);
+    void init_values(List a, NumericVector c, NumericVector c2, NumericVector p, NumericVector c3, double e);
 
     void set_cdvec(NumericVector c);
     void set_cd_pop_vec(NumericVector c);
@@ -102,7 +105,7 @@ class redist_aList {
     int elim_check(NumericVector prop_partition, NumericVector cds);
 	
     // Function to do the split check
-    int split_check();
+    int split_check(List adjcheck_out, NumericVector cds_prop);
 	
     // Function to update district populations
     void update_cd_pop_vec(NumericVector prop_partition,
@@ -126,26 +129,28 @@ class redist_aList {
 }
 
 // Constructor
-void redist_aList::init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e, double m, int l) 
+void redist_aList::init_values(List a, NumericVector c1, NumericVector c2, NumericVector p, NumericVector c3, double e, double m, int l) 
 {
 
   aList = a;
-  cdvec = c;
+  cdorigvec = c1;
+  cdvec = c2;
   popvec = p;
-  cd_pop_vec = c2;
+  cd_pop_vec = c3;
   eprob = e;
   mh_prob = m;
   lambda = l;
   
 }
 
-void redist_aList::init_values(List a, NumericVector c, NumericVector p, NumericVector c2, double e) 
+void redist_aList::init_values(List a, NumericVector c1, NumericVector c2, NumericVector p, NumericVector c3, double e) 
 {
 
   aList = a;
-  cdvec = c;
+  cdorigvec = c1; 
+  cdvec = c2;
   popvec = p;
-  cd_pop_vec = c2;
+  cd_pop_vec = c3;
   eprob = e;
 
 }
@@ -727,7 +732,7 @@ int redist_aList::draw_p()
 }
 
 // Function to propose a connected component for partition
-List redist_aList::propose_partition(List boundary_cc)
+List redist_aList::propose_partition(List boundary_cc, NumericVector cds_prop)
 {
 
   arma::vec rand_sample_index = runif(1, 0, 1000000000);
