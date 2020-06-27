@@ -61,6 +61,7 @@ class redist_aList {
     NumericVector get_cdorigvec();
     NumericVector get_popvec();
     int get_lambda();
+    double get_eprob();
         
     // Function to generate initial vector of populations
     NumericVector init_pop(arma::vec cds);
@@ -202,6 +203,13 @@ NumericVector redist_aList::get_popvec()
 {
   
   return popvec;
+  
+}
+
+double redist_aList::get_eprob() 
+{
+  
+  return eprob;
   
 }
 
