@@ -3,7 +3,7 @@
 // Institution: American School In Japan
 // Date Created: 2020/06/11
 // Date Modified: 2020/06/25
-// Purpose: Preliminary Class for Redistricting Adjacency
+// Purpose: Header file for redist_aList class
 /////////////////////////////////////
 
 #ifndef REDIST_ALIST
