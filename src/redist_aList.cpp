@@ -58,6 +58,7 @@ class redist_aList {
     void redist_aList::set_lambda(int l); 
   
     NumericVector get_cdvec();
+    NumericVector get_cdorigvec();
     NumericVector get_popvec();
     int get_lambda();
         
@@ -187,6 +188,13 @@ NumericVector redist_aList::get_cdvec()
 {
   
   return cdvec;
+  
+}
+
+NumericVector redist_aList::get_cdorigvec() 
+{
+  
+  return cdorigvec;
   
 }
 
