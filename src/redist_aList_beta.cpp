@@ -31,8 +31,6 @@ class redist_aList_beta: public redist_aList {
     NumericVector betas = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
                                                 Named("segregation") = 0.0, Named("similar") = 0.0);
   
-    NumericVector current_dists;
-  
     NumericVector distswitch;
   
     int adjswap = 1;
@@ -60,8 +58,6 @@ class redist_aList_beta: public redist_aList {
      
        beta_similar: strength of constraint for examining plans similar to original district
      
-     current_dists: current vector of congressional district assignments
-     
      distswitch: vector containing the old district, and the proposed new district
      
      adjswap: flag - do we want adjacent swaps? default to 1
@@ -73,7 +69,6 @@ class redist_aList_beta: public redist_aList {
     // Constructor for constraint-related values
     void init_constraints(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd);
     void init_betavals(NumericVector b);
-    void init_annealvals(double a);
     
     void update_current_dists(NumericVector c);
     void update_distswitch(); 
@@ -117,26 +112,12 @@ void redist_aList_beta::init_betavals(NumericVector b)
   
 }
 
-void redist_aList_beta::init_annealvals(double a)
-{
-  
-  anneals = a;
-  
-}
-
-void redist_aList_beta::update_current_dists(NumericVector c)
-{
-  
-  current_dists = c;
-  
-}
-
 void redist_aList_beta::update_distswitch()
 {
 
-  for(int i = 0; i < current_dists.size(); i++){
-    if(is_true(any(distswitch == current_dists(i))) == FALSE){
-      distswitch.push_back(current_dists(i));
+  for(int i = 0; i < cdvec.size(); i++){
+    if(is_true(any(distswitch == cdvec(i))) == FALSE){
+      distswitch.push_back(cdvec(i));
     }
   }
   
@@ -277,7 +258,7 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
   beta_population = betas["population"];
   
   // Calculate parity
-  double parity = (double) sum(popvec) / (max(current_dists) + 1);
+  double parity = (double) sum(popvec) / (max(cdvec) + 1);
 
   // Log_e(2)
   double loge2 = log(2.0);
@@ -293,7 +274,7 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
     int pop_new = 0;
     int pop_old = 0;
     arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(current_dists == distswitch(i));
+    arma::uvec current_cds = find(cdvec == distswitch(i));
 
     // Get population of the old districts
     for(int j = 0; j < new_cds.size(); j++){
@@ -351,7 +332,7 @@ List calc_betacompact(arma::vec new_dists,
     double ssd_new = 0.0;
     double ssd_old = 0.0;
     arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(current_dists == distswitch(i));
+    arma::uvec current_cds = find(cdvec == distswitch(i));
 
     // SSD for new partition
     for(int j = 0; j < new_cds.size(); j++){
@@ -425,7 +406,7 @@ List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
     int oldpopgroup = 0;
     int newpopgroup = 0;
     arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(current_dists == distswitch(i));
+    arma::uvec current_cds = find(cdvec == distswitch(i));
   
     // Segregation for proposed assignments
     for(int j = 0; j < new_cds.size(); j++){
@@ -494,27 +475,27 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
     // Initialize objects
     int new_count = 0;
     int old_count = 0;
-    NumericVector orig_cds = wrap(find(cdvec == distswitch(i)));
+    NumericVector orig_cds = wrap(find(cdorigvec == distswitch(i)));
     arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(current_dists == distswitch(i));
+    arma::uvec current_cds = find(cdvec == distswitch(i));
 
     // Similarity measure for proposed assignments
     for(int j = 0; j < new_cds.size(); j++){
-      if(any(cdvec == new_cds(j)).is_true()){
+      if(any(cdorigvec == new_cds(j)).is_true()){
     	new_count++;
       }
     }
 
     // Similarity measure for current assignments
     for(int j = 0; j < current_cds.size(); j++){
-      if(any(cdvec == current_cds(j)).is_true()){
+      if(any(cdorigvec == cdvec(j)).is_true()){
     	old_count++;
       }
     }
 
     // Calculate proportions
-    double old_count_prop = (double) old_count / cdvec.size();
-    double new_count_prop = (double) new_count / cdvec.size();
+    double old_count_prop = (double) old_count / cdorigvec.size();
+    double new_count_prop = (double) new_count / cdorigvec.size();
     
     // Add to psi
     psi_new += (double) std::abs(new_count_prop - 1);
