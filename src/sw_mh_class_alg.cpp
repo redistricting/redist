@@ -57,9 +57,11 @@ List swMH(redist_aList_beta region,
      
   */
   
+  aList = region.get_aList();
   cdvec = region.get_cdvec();
-  cdorigvec = region.get_cdvec();
+  cdorigvec = region.get_cdorigvec();
   popvec = region.get_popvec();
+  eprob = region.get_eprob();
   
   // Preprocess vector of congressional district assignments
   if(min(cdvec) == 1){
@@ -211,26 +213,26 @@ List swMH(redist_aList_beta region,
       // Draw parameter p (number of swaps for iteration of alg) from pois(lambda)
       p = region.draw_p();
       
-      /* Loop over p, draw p connected components
+      // Loop over p, draw p connected components
       swap_partitions = make_swaps(boundary_partitions["bsearch"], 
 				   aList, 
 				   cdvec,
 				   cdorigvec,
 				   popvec,
 				   district_pops,
-				   grouppopvec,
-				   ssdmat,
+				   region.get_grouppopvec(),
+				   region.get_ssdmat(),
 				   min_parity,
 				   max_parity,
 				   p,
 				   eprob,
-				   beta_population,
-				   beta_compact,
-				   beta_segregation,
-				   beta_similar,
+				   betas["population"],
+				   betas["compact"],
+				   betas["segregation"],
+				   betas["similar"],
 				   ssd_denom);
 
-    }while(as<int>(swap_partitions["goodprop"]) == 0); */
+    }while(as<int>(swap_partitions["goodprop"]) == 0); 
       
     // Get new boundary, then get number of partitions
     if(exact_mh == 1){
@@ -289,7 +291,7 @@ List swMH(redist_aList_beta region,
 	
 	       // Propose swapping beta
 	       gt_out = region.changeBeta(betas["population"],
-			    as<double>(get_constraint["pop_new_psi"]));
+			    as<double>(get_constraint ["pop_new_psi"]));
 	
 	     }else{ // Using value of psi if not accepted
 	
@@ -379,7 +381,7 @@ List swMH(redist_aList_beta region,
           
 	     // Change beta
 	     betas["segregation"] = as<double>(gt_out["beta"]);
-             region.update_betas(betas["segregation"], "segregation");
+       region.update_betas(betas["segregation"], "segregation");
 
 	     // Store output of geyer thompson
 	     if(k < nsims){
@@ -436,6 +438,7 @@ List swMH(redist_aList_beta region,
     // Six = clean up and store results //
     //////////////////////////////////////
     cdvec_prop = clone(as<NumericVector>(swap_partitions["proposed_partition"]));
+      
     if(decision == 1){
       // Update cds to proposed cds
       cdvec = clone(as<NumericVector>(swap_partitions["proposed_partition"]));
@@ -469,7 +472,7 @@ List swMH(redist_aList_beta region,
 
     // Print Progress
     if(k % nsims_10pct == 0){
-      Rcout << (double)k / nsims_10pct * 10 << " percent done." << std::endl;
+      Rcout << (double) k / nsims_10pct * 10 << " percent done." << std::endl;
       if(adapt_lambda == 1){
 	     Rcout << "Lambda: " << lambda << std::endl;
       }
@@ -488,7 +491,7 @@ List swMH(redist_aList_beta region,
            region.set_lambda(lambda);
 	       }
 	       if(adapt_eprob == 1 && eprob < .5){
-	         eprob = eprob + .01;
+           eprob = eprob + .01;
            region.set_eprob(eprob);
 	       }
 	     }
@@ -545,6 +548,3 @@ List swMH(redist_aList_beta region,
     
 
 }
-
-
-
