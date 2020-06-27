@@ -54,8 +54,8 @@ class redist_aList {
 
     void set_cdvec(NumericVector c);
     void set_cd_pop_vec(NumericVector c);
-    void redist_aList::set_eprob(double e);
-    void redist_aList::set_lambda(int l); 
+    void set_eprob(double e);
+    void set_lambda(int l); 
   
     List get_aList();
     NumericVector get_cdvec();
