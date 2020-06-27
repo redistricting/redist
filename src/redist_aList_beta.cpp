@@ -72,6 +72,8 @@ class redist_aList_beta: public redist_aList {
     
     void update_current_dists(NumericVector c);
     void update_distswitch(); 
+    NumericVector get_grouppopvec();
+    NumericVector get_ssdmat();
     NumericVector get_betas();
     double get_pct_dist_parity();
     void update_betas(double b, string s);
@@ -120,6 +122,20 @@ void redist_aList_beta::update_distswitch()
       distswitch.push_back(cdvec(i));
     }
   }
+  
+}
+
+NumericVector redist_aList_beta::get_grouppopvec() 
+{
+  
+  return grouppopvec;
+  
+}
+
+NumericVector redist_aList_beta::get_ssdmat() 
+{
+  
+  return ssdmat;
   
 }
 
