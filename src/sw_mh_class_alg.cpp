@@ -2,7 +2,7 @@
 // Author: Rei Yatsuhashi
 // Institution: American School In Japan
 // Date Created: 2020/06/26
-// Date Modified: 2020/06/26
+// Date Modified: 2020/07/01
 // Purpose: swMH() function modified with new redist_aList_beta class
 /////////////////////////////////////
 
@@ -234,7 +234,7 @@ List swMH(redist_aList_beta region,
 
     }while(as<int>(swap_partitions["goodprop"]) == 0); 
       
-    // Get new boundary, then get number of partitions
+    /* // Get new boundary, then get number of partitions
     if(exact_mh == 1){
       aList_con_prop = region.genAlConn(as<NumericVector>(swap_partitions["proposed_partition"]));
       boundary_prop = region.findBoundary(aList_con_prop);
@@ -266,7 +266,7 @@ List swMH(redist_aList_beta region,
         pow((double)nvalid_current / nvalid_prop, (double)p) * (F_pi / F_pi_prime);
       boundaryratio_store(k) = pow((double)nvalid_current / nvalid_prop, (double)p);
         
-    }
+    } */
       
     //////////////////////////////////////////
     // Fifth - Accept with some probability //
@@ -276,6 +276,36 @@ List swMH(redist_aList_beta region,
     /////////////////////////////////////////////////////////////
     // Also - for simulated tempering, propose a possible swap //
     /////////////////////////////////////////////////////////////
+    
+    /* if(decision == 1){
+      
+      if(betas["population"] != 0.0){
+	      psipop_store[k] = swap_partitions["pop_new_psi"];
+      }
+      if(betas["compact"] != 0.0){
+	      psicompact_store[k] = swap_partitions["compact_new_psi"];
+      }
+      if(betas["segregation"] != 0.0){
+	      psisegregation_store[k] = swap_partitions["segregation_new_psi"];
+      }
+      if(betas["similar"] != 0.0){
+	      psisimilar_store[k] = swap_partitions["similar_new_psi"];
+      }
+    }else{
+      if(betas["population"] != 0.0){
+	      psipop_store[k] = swap_partitions["pop_old_psi"];
+      }
+      if(betas["compact"] != 0.0){
+	      psicompact_store[k] = swap_partitions["compact_old_psi"];
+      }
+      if(betas["segregation"] != 0.0){
+	      psisegregation_store[k] = swap_partitions["segregation_old_psi"];
+      }
+      if(betas["similar"] != 0.0){
+	      psisimilar_store[k] = swap_partitions["similar_old_psi"];
+      }
+    } */
+    
     if((anneal_beta_population == 1) || (betas["population"] != 0.0)){ 
       get_constraint = region.calc_betapop(as<NumericVector>(swap_partitions["proposed_partition"]));
  
@@ -414,8 +444,8 @@ List swMH(redist_aList_beta region,
 	     }else{ // Use value of psi if not accepted
 
 	       // Propose swapping beta
-	       gt_out = changeBeta(betas["similar"],
-			    as<double>(get_constraint["similar_new_psi"]));
+	       gt_out = region.changeBeta(betas["similar"],
+			    as<double>(get_constraint["similar_old_psi"]));
 
 	     }
 
