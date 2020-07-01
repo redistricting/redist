@@ -80,8 +80,6 @@ List swMH(redist_aList_beta region,
   eprob = region.get_eprob();
   pct_dist_parity = region.get_pct_dist_parity();
   
-  // beta = region.get_beta();
-  
   // Preprocess vector of congressional district assignments
   if(min(cdvec) == 1){
     for(int i = 0; i < cdvec.size(); i++){
@@ -234,40 +232,6 @@ List swMH(redist_aList_beta region,
 
     }while(as<int>(swap_partitions["goodprop"]) == 0); 
       
-    /* // Get new boundary, then get number of partitions
-    if(exact_mh == 1){
-      aList_con_prop = region.genAlConn(as<NumericVector>(swap_partitions["proposed_partition"]));
-      boundary_prop = region.findBoundary(aList_con_prop);
-      boundary_partitions_prop = region.bsearch_boundary(cutedge_lists["connectedlist"],
-						    boundary_prop);
-      
-      // Correct npartitions to only include boundary partitions that don't break contiguity
-      int nvalid_current = region.count_valid(boundary_partitions["bsearch"], cdvec);
-      int nvalid_prop = region.count_valid(boundary_partitions_prop["bsearch"],
-			      swap_partitions["proposed_partition"]);
-      
-      // Construct multiple swaps term
-      double p_0;
-      double F_pi;
-      double F_pi_prime;
-      lambda = region.get_lambda();
-        
-      if(lambda > 0){
-        p_0 = R::ppois(0, lambda, 1, 0);         
-        F_pi = R::ppois(nvalid_current, lambda, 1, 0) - p_0;
-        F_pi_prime = R::ppois(nvalid_prop, lambda, 1, 0) - p_0;
-      }else{
-        F_pi = 1.0;
-        F_pi_prime = 1.0;
-      }
-      
-      // Modify metropolis-hastings ratio
-      swap_partitions["mh_prob"] = as<double>(swap_partitions["mh_prob"]) *
-        pow((double)nvalid_current / nvalid_prop, (double)p) * (F_pi / F_pi_prime);
-      boundaryratio_store(k) = pow((double)nvalid_current / nvalid_prop, (double)p);
-        
-    } */
-      
     //////////////////////////////////////////
     // Fifth - Accept with some probability //
     //////////////////////////////////////////
@@ -316,9 +280,9 @@ List swMH(redist_aList_beta region,
 
       // Run geyer thompson algorithm
       if(decision == 1){
-        gt_out = changeBeta(beta, swap_partitions["energy_new"]);
+        gt_out = region.changeBeta(beta, swap_partitions["energy_new"]);
       }else{
-	      gt_out = changeBeta(beta, swap_partitions["energy_old"]);
+	      gt_out = region.changeBeta(beta, swap_partitions["energy_old"]);
       }
 
       // Change beta
@@ -335,12 +299,12 @@ List swMH(redist_aList_beta region,
     }else if(adapt_beta == "annealing"){
 
       if((k >= start_anneal) & (k < start_cold)){
-	      beta = beta_seq[k - start_anneal];
+        beta = beta_seq[k - start_anneal];
       }else if(k >= start_cold){
-	      beta = 1.0;
+        beta = 1.0;
       }
       if(k < nsims){
-	      betaseq_store[z] = beta;
+        betaseq_store[z] = beta;
       }
       
     }
@@ -353,7 +317,7 @@ List swMH(redist_aList_beta region,
     if(decision == 1){
       // Update cds to proposed cds
       cdvec = clone(as<NumericVector>(swap_partitions["proposed_partition"]));
-	    region.set_cdvec(cdvec);
+      region.set_cdvec(cdvec);
       // Update district_pops to proposed district pops
       district_pops = clone(as<NumericVector>(swap_partitions["updated_cd_pops"]));
       region.set_cd_pop_vec(district_pops);
