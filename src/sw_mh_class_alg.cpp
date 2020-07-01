@@ -20,6 +20,31 @@
 
 using namespace Rcpp; 
 
+List vector_to_list(arma::uvec vecname){
+
+  List list_out(vecname.n_elem);
+  for(int i = 0; i < vecname.n_elem; i++){
+    list_out(i) = vecname(i);
+  }
+  return list_out;
+	
+}
+
+arma::uvec get_not_in(arma::uvec vec1, arma::uvec vec2){
+  int i; arma::uvec findtest; arma::uvec out(vec1.n_elem);
+  for(i = 0; i < vec1.n_elem; i++){
+    findtest = find(vec2 == vec1(i));
+    if(findtest.n_elem == 0){
+      out(i) = 1;
+    }else{
+      out(i) = 0;
+    }
+  }
+  arma::uvec candidates = vec1.elem( find(out == 1) );
+  
+  return candidates;
+}
+
 /* Primary function to run redistricting algorithm. An implementation of 
    Algorithm 1 in Barbu and Zhu (2005) using classes. */
 // [[Rcpp::export]]
@@ -194,16 +219,22 @@ List swMH(redist_aList_beta region,
     // Continue trying until you get p good swaps
     do{
       
-      // First element is connected adjlist, second element is cut adjlist
-      cutedge_lists = region.cut_edges(aList_con);
-      
-      ////////////////////////////////////////////////////////////////////
-      // Third: generate a list of connected components within each cd //
-      ///////////////////////////////////////////////////////////////////
-      /* List of connected partitions after edgecuts - first element is list of 
-	      partitions, second element is number of partitions */
-      boundary_partitions = region.bsearch_boundary(cutedge_lists["connectedlist"],
-					     boundary);
+      if(eprob != 0.0){
+	// First element is connected adjlist, second element is cut adjlist
+	cutedge_lists = cut_edges(aList_con, eprob);
+	
+	////////////////////////////////////////////////////////////////////
+	// Third: generate a list of connected components within each cd //
+	///////////////////////////////////////////////////////////////////
+	/* List of connected partitions after edgecuts - first element is list of 
+	   partitions, second element is number of partitions */
+	boundary_partitions = bsearch_boundary(cutedge_lists["connectedlist"],
+					       boundary);
+	boundary_partitions_list = boundary_partitions["bsearch"];
+      }else{
+	boundary_precincts = find(as<arma::vec>(boundary) == 1);
+	boundary_partitions_list = vector_to_list(boundary_precincts);
+      }
 
       ///////////////////////////////////////////////////////////////////////
       // Fourth - select several connected components w/ unif distribution //
