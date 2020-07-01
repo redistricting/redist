@@ -20,12 +20,10 @@ class redist_aList_beta: public redist_aList {
     NumericVector grouppopvec;
   
     NumericVector beta_sequence;
-  
-    NumericVector beta_weights;
     
     NumericMatrix ssdmat;
     
-    NumericVector betas = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
+    NumericVector beta_weights = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
                                                 Named("segregation") = 0.0, Named("similar") = 0.0);
   
     NumericVector distswitch;
@@ -40,12 +38,10 @@ class redist_aList_beta: public redist_aList {
      
      beta_sequence: sequence of betas to anneal over
      
-     beta_weights: prior weights on the beta sequence
-     
      ssdmat: matrix of squared distances between geographic units. For constraining
      on compactness
      
-     betas: {beta_population, beta_compact, beta_segregation, beta_similar}
+     beta_weights: {beta_population, beta_compact, beta_segregation, beta_similar}
      
        beta_population: strength of constraint for achieving population parity
      
