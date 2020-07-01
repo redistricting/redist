@@ -255,11 +255,13 @@ List swMH(redist_aList_beta region,
 				   max_parity,
 				   p,
 				   eprob,
+				   beta,
 				   beta_weights["population"],
 				   beta_weights["compact"],
 				   beta_weights["segregation"],
 				   beta_weights["similar"],
-				   ssd_denom);
+				   ssd_denom,
+				   compactness_measure);
 
     }while(as<int>(swap_partitions["goodprop"]) == 0); 
       
