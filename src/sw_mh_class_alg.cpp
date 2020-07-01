@@ -26,18 +26,25 @@ using namespace Rcpp;
 
 List swMH(redist_aList_beta region,
 	  int nsims,
+    double beta = 0.0,
+    double ssd_denom = 1.0,
 	  int anneal_beta_population = 0,
 	  int anneal_beta_compact = 0,
 	  int anneal_beta_segregation = 0,
 	  int anneal_beta_similar = 0,
 	  int exact_mh = 0,
 	  int adapt_eprob = 0,
-	  int adapt_lambda = 0)
+	  int adapt_lambda = 0,
+    std::string adapt_beta = "none",
+	  std::string compactness_measure = "fryer-holden",
+	  int num_hot_steps = 0,
+	  int num_annealing_steps = 0,
+	  int num_cold_steps = 0)
 {
 
 /* Inputs to function:
      
-     region: the region, in the form of a class containing all necessary information
+     region: the region, in the form of a class (redist_aList_beta) containing all necessary information
      
      nsims: number of simulations
      
@@ -51,17 +58,29 @@ List swMH(redist_aList_beta region,
      
      exact_mh: flag for whether to calculate the exact metropolis-hastings w boundary correction
      
-     adapt_eprob:
-     
-     adapt_lambda: 
-     
   */
+  
+  // Set nsims if annealing
+  int start_anneal;
+  int start_cold;
+  NumericVector beta_seq(num_annealing_steps);
+  if(adapt_beta == "annealing"){
+    nsims = num_hot_steps + num_annealing_steps + num_cold_steps;
+    start_anneal = num_hot_steps;
+    start_cold = num_hot_steps + num_annealing_steps;
+    for(int i = 0; i < num_annealing_steps; i++){
+      beta_seq(i) = (double) i/num_annealing_steps;
+    }
+  }
   
   aList = region.get_aList();
   cdvec = region.get_cdvec();
   cdorigvec = region.get_cdorigvec();
   popvec = region.get_popvec();
   eprob = region.get_eprob();
+  pct_dist_parity = region.get_pct_dist_parity();
+  
+  // beta = region.get_beta();
   
   // Preprocess vector of congressional district assignments
   if(min(cdvec) == 1){
@@ -80,9 +99,6 @@ List swMH(redist_aList_beta region,
   // Get populations of districts
   NumericVector district_pops = region.init_pop(cdvec);
   
-  // Get beta strengths
-  betas = region.get_betas();
-  
   // Get vector of unique district ids
   NumericVector uniquedists;
   for(int i = 0; i < cdvec.size(); i++){
@@ -90,17 +106,6 @@ List swMH(redist_aList_beta region,
       uniquedists.push_back(cdvec(i));
     }
   }
-  
-  // Get ssd denominator
-  double ssd_denom;
-  if(betas["compact"] != 0.0 || anneal_beta_compact == 1){
-    ssd_denom = as<double>(region.calc_betacompact(uniquedists,
-					    1.0)["compact_new_psi"]);
-  }else{
-    ssd_denom = 1;
-  }
-  
-  pct_dist_parity = region.get_pct_dist_parity();
   
   // Define parity, min and max popoulations
   double parity = sum(popvec) / (max(cdvec) + 1);
@@ -116,7 +121,12 @@ List swMH(redist_aList_beta region,
   int nsims_10pct = ceil((double)nsims / 10);
   
   // Store outputted congressional districts
-  NumericMatrix cd_store(cdvec.size(), nsims);
+  NumericMatrix cd_store;
+  if(adapt_beta != "annealing"){
+    cd_store = NumericMatrix(cdvec.size(), nsims);
+  }else{
+    cd_store = NumericMatrix(cdvec.size(), 1);
+  }
   
   // Store metropolis-hastings decisions for swaps
   NumericVector decision_store(nsims);
@@ -124,6 +134,7 @@ List swMH(redist_aList_beta region,
   int decision_counter = 0;
   
   // Store value of psi for all constraints
+  NumericVector energy_store(nsims);
   NumericVector psipop_store(nsims);
   NumericVector psicompact_store(nsims);
   NumericVector psisegregation_store(nsims);
@@ -138,34 +149,15 @@ List swMH(redist_aList_beta region,
   
   // Store sequence of betas - geyer thompson
   NumericVector betaseq_store(nsims);
-  
-  if(anneal_beta_population == 1){
-    betaseq_store[z] = betas["population"];
-  }
-  if(anneal_beta_compact == 1){
-    betaseq_store[z] = betas["compact"];
-  }
-  if(anneal_beta_segregation == 1){
-    betaseq_store[z] = betas["segregation"];
-  }
-  if(anneal_beta_similar == 1){
-    betaseq_store[z] = betas["similar"];
+  if(adapt_beta == "tempering"){
+    betaseq_store[z] = beta;
   }
 
   // Iterate up z
   z++;
-  
-  if(anneal_beta_population == 0 && beta != 0.0){
-    std::fill(betaseq_store.begin(), betaseq_store.end(), betas["population"]);
-  }
-  if(anneal_beta_compact == 0 && beta_compact != 0.0){
-    std::fill(betaseq_store.begin(), betaseq_store.end(), betas["compact"]);
-  }
-  if(anneal_beta_segregation == 0 && beta_segregation != 0.0){
-    std::fill(betaseq_store.begin(), betaseq_store.end(), betas["segregation"]);
-  }
-  if(anneal_beta_similar == 0 && beta_similar != 0.0){
-    std::fill(betaseq_store.begin(), betaseq_store.end(), betas["similar"]);
+
+  if(adapt_beta != "tempering" && beta != 0.0){
+    std::fill(betaseq_store.begin(), betaseq_store.end(), beta);
   }
 
   // Store metropolis-hastings decisions - geyer thompson
@@ -177,6 +169,14 @@ List swMH(redist_aList_beta region,
   List boundary_partitions; List cutedge_lists; int p; List aList_con_prop;
   NumericVector boundary_prop; List boundary_partitions_prop; int decision;
   List get_constraint; List gt_out; NumericVector cdvec_prop; int i;
+  
+  arma::uvec boundary_precincts; List boundary_partitions_list;
+  
+  if(adapt_beta == "annealing"){
+    Rcout << "---------------------------------" << std::endl;
+    Rcout << "-- Simulating at hot temperature." << std::endl;
+    Rcout << "---------------------------------" << std::endl;
+  }
   
   // Open the simulations
   while(k < nsims){
@@ -226,10 +226,10 @@ List swMH(redist_aList_beta region,
 				   max_parity,
 				   p,
 				   eprob,
-				   betas["population"],
-				   betas["compact"],
-				   betas["segregation"],
-				   betas["similar"],
+				   beta_weights["population"],
+				   beta_weights["compact"],
+				   beta_weights["segregation"],
+				   beta_weights["similar"],
 				   ssd_denom);
 
     }while(as<int>(swap_partitions["goodprop"]) == 0); 
@@ -277,193 +277,74 @@ List swMH(redist_aList_beta region,
     // Also - for simulated tempering, propose a possible swap //
     /////////////////////////////////////////////////////////////
     
-    /* if(decision == 1){
+    if(decision == 1){
       
-      if(betas["population"] != 0.0){
+      if(beta_weights["population"] != 0.0){
 	      psipop_store[k] = swap_partitions["pop_new_psi"];
       }
-      if(betas["compact"] != 0.0){
+      if(beta_weights["compact"] != 0.0){
 	      psicompact_store[k] = swap_partitions["compact_new_psi"];
       }
-      if(betas["segregation"] != 0.0){
+      if(beta_weights["segregation"] != 0.0){
 	      psisegregation_store[k] = swap_partitions["segregation_new_psi"];
       }
-      if(betas["similar"] != 0.0){
+      if(beta_weights["similar"] != 0.0){
 	      psisimilar_store[k] = swap_partitions["similar_new_psi"];
       }
+      
     }else{
-      if(betas["population"] != 0.0){
+      
+      if(beta_weights["population"] != 0.0){
 	      psipop_store[k] = swap_partitions["pop_old_psi"];
       }
-      if(betas["compact"] != 0.0){
+      if(beta_weights["compact"] != 0.0){
 	      psicompact_store[k] = swap_partitions["compact_old_psi"];
       }
-      if(betas["segregation"] != 0.0){
+      if(beta_weights["segregation"] != 0.0){
 	      psisegregation_store[k] = swap_partitions["segregation_old_psi"];
       }
-      if(betas["similar"] != 0.0){
+      if(beta_weights["similar"] != 0.0){
 	      psisimilar_store[k] = swap_partitions["similar_old_psi"];
       }
-    } */
-    
-    if((anneal_beta_population == 1) || (betas["population"] != 0.0)){ 
-      get_constraint = region.calc_betapop(as<NumericVector>(swap_partitions["proposed_partition"]));
- 
-      // Store psi value
+      
+    } 
+
+    /////////////////////////////////////////////////////////////
+    // Also - for simulated tempering, propose a possible swap //
+    /////////////////////////////////////////////////////////////
+    if(adapt_beta == "tempering"){
+
+      // Run geyer thompson algorithm
       if(decision == 1){
-	     psipop_store[k] = as<double>(get_constraint["pop_new_psi"]);
+        gt_out = changeBeta(beta, swap_partitions["energy_new"]);
       }else{
-	     psipop_store[k] = as<double>(get_constraint["pop_old_psi"]);
+	      gt_out = changeBeta(beta, swap_partitions["energy_old"]);
       }
+
+      // Change beta
+      beta = as<double>(gt_out["beta"]);
+      
+      // Store the output of geyer thompson
+      if(k < nsims){
+	      betaseq_store[z] = beta;
+      }
+      
+      decision_betaseq_store[k] = as<int>(gt_out["mh_decision"]);
+      mhprob_betaseq_store[k] = as<double>(gt_out["mh_prob"]);
+      
+    }else if(adapt_beta == "annealing"){
+
+      if((k >= start_anneal) & (k < start_cold)){
+	      beta = beta_seq[k - start_anneal];
+      }else if(k >= start_cold){
+	      beta = 1.0;
+      }
+      if(k < nsims){
+	      betaseq_store[z] = beta;
+      }
+      
+    }
     
-      if(anneal_beta_population == 1){ // Tempering step
-	     if(decision == 1){ // Using value of psi if accepted
-	
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["population"],
-			    as<double>(get_constraint ["pop_new_psi"]));
-	
-	     }else{ // Using value of psi if not accepted
-	
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["population"],
-			      as<double>(get_constraint["pop_old_psi"]));
-	
-	     }
-      
-	     // Change beta
-	     region.update_betas(as<double>(gt_out["beta"]), "population");
-             betas["population"] = as<double>(gt_out["beta"]);
-      
-	     // Store the output of geyer thompson
-	     if(k < nsims){
-	       betaseq_store[z] = beta_population;
-	     }
-	     decision_betaseq_store[k] = as<int>(gt_out["mh_decision"]);
-	     mhprob_betaseq_store[k] = as<double>(gt_out["mh_prob"]);
-      
-      }
-    
-    }
-      
-    if((anneal_beta_compact == 1) || (betas["compact"] != 0.0)){ // If constraining, get value of constraints
-      get_constraint = region.calc_betacompact(as<NumericVector>(swap_partitions["proposed_partition"]));
-      
-      // Get psi value
-      if(decision == 1){
-	     psicompact_store[k] = as<double>(get_constraint["compact_new_psi"]);
-      }else{
-	     psicompact_store[k] = as<double>(get_constraint["compact_old_psi"]);
-      }
-    
-      if(anneal_beta_compact == 1){ // Annealing step
-	     if(decision == 1){ // Using value of psi if accepted
-	
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["compact"], as<double>(get_constraint["compact_new_psi"]));
-	
-	     }else{ // Using value of psi if not accepted
-	  
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["population"], as<double>(get_constraint["compact_old_psi"]));
-	  
-	     }
-	
-	     // Change beta
-       betas["compact"] = as<double>(gt_out["beta"]);
-       region.update_betas(betas["compact"], "compact");
-	
-	     // Store the output of geyer thompson
-	     if(k < nsims){
-	       betaseq_store[z] = beta_compact;
-	     }
-	     decision_betaseq_store[k] = as<int>(gt_out["mh_decision"]);
-	     mhprob_betaseq_store[k] = as<double>(gt_out["mh_prob"]);
-
-      }
-
-    }
-      
-    if((anneal_beta_segregation == 1) || (betas["segregation"] != 0.0)){ // If constraining, get value of constraint
-      get_constraint = region.calc_betasegregation(as<NumericVector>(swap_partitions["proposed_partition"]));
-      
-      // Get psi value
-      if(decision == 1){
-	     psisegregation_store[k] = as<double>(get_constraint["segregation_new_psi"]);
-      }else{
-	     psisegregation_store[k] = as<double>(get_constraint["segregation_old_psi"]);
-      }
-
-      if(anneal_beta_segregation == 1){ // Annealing step
-	     if(decision == 1){
-
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["segregation"],
-			    as<double>(get_constraint["segregation_new_psi"]));
-	  
-	     }else{ // Use value of psi if not accepted
-
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["segregation"],
-			     as<double>(get_constraint["segregation_old_psi"]));
-	  
-	     }
-          
-	     // Change beta
-	     betas["segregation"] = as<double>(gt_out["beta"]);
-       region.update_betas(betas["segregation"], "segregation");
-
-	     // Store output of geyer thompson
-	     if(k < nsims){
-	       betaseq_store[k] = beta_segregation;
-	     }
-	     decision_betaseq_store[k] = as<int>(gt_out["mh_decision"]);
-	     mhprob_betaseq_store[k] = as<double>(gt_out["mh_prob"]);
-
-      }
-
-    }
-      
-    if((anneal_beta_similar == 1) || (betas["similar"] != 0.0)) { // If constraining, get value of constraint
-      get_constraint = region.calc_betasimilar(as<NumericVector>(swap_partitions["proposed_partition"]));
-
-      // Get psi value
-      if(decision == 1){
-	     psisimilar_store[k] = as<double>(get_constraint["similar_new_psi"]);
-      }else{
-	     psisimilar_store[k] = as<double>(get_constraint["similar_old_psi"]);
-      }
-
-      if(anneal_beta_similar == 1){ // Annealing step
-	     if(decision == 1){
-
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["similar"]
-			    as<double>(get_constraint["similar_new_psi"]));
-	  
-	     }else{ // Use value of psi if not accepted
-
-	       // Propose swapping beta
-	       gt_out = region.changeBeta(betas["similar"],
-			    as<double>(get_constraint["similar_old_psi"]));
-
-	     }
-
-	     // Change beta
-	     betas["similar"] = as<double>(gt_out["beta"]);
-       region.update_betas(betas["similar"], "similar");
-
-	     // Store output of geyer thompson
-	     if(k < nsims){
-	       betaseq_store[k] = beta_similar;
-	     }
-	     decision_betaseq_store[k] = as<int>(gt_out["mh_decision"]);
-	     mhprob_betaseq_store[k] = as<double>(gt_out["mh_prob"]);
-	
-      }
-
-    }
-      
     //////////////////////////////////////
     // Six = clean up and store results //
     //////////////////////////////////////
@@ -477,14 +358,16 @@ List swMH(redist_aList_beta region,
       district_pops = clone(as<NumericVector>(swap_partitions["updated_cd_pops"]));
       region.set_cd_pop_vec(district_pops);
       // Store number of boundary partitions
-      boundarypartitions_store[k] = boundary_partitions["npartitions"];
+      boundarypartitions_store[k] = boundary_partitions_list.size();
     } else{
       boundarypartitions_store[k] = boundarypartitions_store[k-1];
     }
       
     // Store previous iteration
-    for(i = 0; i < cdvec.size(); i++){
-      cd_store[k * cdvec.size() + i] = cdvec(i);
+    if(adapt_beta != "annealing"){
+      for(i = 0; i < cdvec.size(); i++){
+	      cd_store[k * cdvec.size() + i] = cdvec(i);
+      }
     }
 
     // Store p
@@ -510,6 +393,19 @@ List swMH(redist_aList_beta region,
 	     Rcout << "Edgecut Probability: " << eprob << std::endl;
       }
       Rcout << "Metropolis acceptance ratio: "<< (double) decision_counter / (k-1) << std::endl << std::endl;
+    }
+
+    if(adapt_beta == "annealing"){
+      if(k == start_anneal){
+	      Rcout << "----------------------------" << std::endl;
+	      Rcout << "-- Starting annealing stage." << std::endl;
+	      Rcout << "----------------------------" << std::endl;
+      }
+      if(k == start_cold){
+	      Rcout << "----------------------------------" << std::endl;
+	      Rcout << "-- Simulating at cold temperature." << std::endl;
+	      Rcout << "----------------------------------" << std::endl;
+      }
     }
   
     // Change eprob, lambda if adaptive
@@ -539,37 +435,73 @@ List swMH(redist_aList_beta region,
     }
         
   }
-    
-  // Get distance from parity of each partition
-  NumericVector dist_parity_vec = distParity(cd_store, popvec);
 
-  NumericVector dist_orig_vec = diff_origcds(cd_store, cdorigvec);
+  // Get distance from parity of each partition
+  NumericVector dist_parity_vec;
+  NumericVector dist_orig_vec;
+  if(adapt_beta != "annealing"){
+    dist_parity_vec = distParity(cd_store, popvec);
+    dist_orig_vec = diff_origcds(cd_store, cdorigvec);
+  }else{
+    for(int i = 0; i < cdvec.size(); i++){
+      cd_store[i] = cdvec(i);
+    }
+    dist_parity_vec = distParity(cd_store, popvec);
+    dist_orig_vec = diff_origcds(cd_store, popvec);
+  }
+
   
   // Create list, store outputx
   List out;
-  out["partitions"] = cd_store;
-  out["distance_parity"] = dist_parity_vec;
-  out["distance_original"] = dist_orig_vec;
-  out["mhdecisions"] = decision_store;
-  out["mhprob"] = mhprob_store;
-  out["pparam"] = pparam_store;
-  out["beta_sequence"] = betaseq_store;
-  out["constraint_pop"] = psipop_store;
-  out["constraint_compact"] = psicompact_store;
-  out["constraint_segregation"] = psisegregation_store;
-  out["constraint_similar"] = psisimilar_store;
-  out["boundary_partitions"] = boundarypartitions_store;
-  out["boundaryratio"] = boundaryratio_store;
-  if((anneal_beta_population == 1) || (anneal_beta_compact == 1) ||
-     (anneal_beta_segregation == 1) || (anneal_beta_similar == 1)){
-    out["mhdecisions_beta"] = decision_betaseq_store;
-    out["mhprob_beta"] = mhprob_betaseq_store;
-  }
-  if(adapt_eprob == 1){
-    out["final_eprob"] = eprob;
-  }
-  if(adapt_lambda == 1){
-    out["final_lambda"] = lambda;
+
+  if(adapt_beta != "annealing"){
+    out["partitions"] = cd_store;
+    out["distance_parity"] = dist_parity_vec;
+    out["distance_original"] = dist_orig_vec;
+    out["mhdecisions"] = decision_store;
+    out["mhprob"] = mhprob_store;
+    out["pparam"] = pparam_store;
+    out["beta_sequence"] = betaseq_store;
+    out["energy_psi"] = energy_store;
+    out["constraint_pop"] = psipop_store;
+    out["constraint_compact"] = psicompact_store;
+    out["constraint_segregation"] = psisegregation_store;
+    out["constraint_similar"] = psisimilar_store;
+    out["constraint_countysplit"] = psicountysplit_store;
+    out["boundary_partitions"] = boundarypartitions_store;
+    out["boundaryratio"] = boundaryratio_store;
+    if(adapt_beta == "tempering"){
+      out["mhdecisions_beta"] = decision_betaseq_store;
+      out["mhprob_beta"] = mhprob_betaseq_store;
+    }
+    if(adapt_eprob == 1){
+      out["final_eprob"] = eprob;
+    }
+    if(adapt_lambda == 1){
+      out["final_lambda"] = lambda;
+    }
+  }else{
+    out["partitions"] = cdvec;
+    out["distance_parity"] = dist_parity_vec[0];
+    out["distance_original"] = dist_orig_vec[0];
+    out["mhdecisions"] = decision_store[k-1];
+    out["mhprob"] = mhprob_store[k-1];
+    out["pparam"] = pparam_store[k-1];
+    out["beta_sequence"] = betaseq_store[k-1];
+    out["energy_psi"] = energy_store[k-1];
+    out["constraint_pop"] = psipop_store[k-1];
+    out["constraint_compact"] = psicompact_store[k-1];
+    out["constraint_segregation"] = psisegregation_store[k-1];
+    out["constraint_similar"] = psisimilar_store[k-1];
+    out["constraint_countysplit"] = psicountysplit_store[k-1];
+    out["boundary_partitions"] = boundarypartitions_store[k-1];
+    out["boundaryratio"] = boundaryratio_store[k-1];
+    if(adapt_eprob == 1){
+      out["final_eprob"] = eprob;
+    }
+    if(adapt_lambda == 1){
+      out["final_lambda"] = lambda;
+    }
   }
   
   return out;
