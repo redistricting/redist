@@ -469,10 +469,6 @@ int draw_p(int lambda)
 
 }
 
-/* Function to draw p separate, noncontiguous connected components from the
-   output of the boundary breadth search. These are candidate swaps
-   to form the next iteration of the markov chain. Function returns
-   the proposed district assignments that will be accepted or rejected */
 List make_swaps(List boundary_cc,
 		List aList, 
 		NumericVector cds_old,
@@ -485,47 +481,33 @@ List make_swaps(List boundary_cc,
 		double maxparity, 
 		int p, 
 		double eprob,
-		double beta_population,
-		double beta_compact,
-		double beta_segregation,
-		double beta_similar,
-		double ssd_denominator)
+		double beta,
+		double weight_population,
+		double weight_compact,
+		double weight_segregation,
+		double weight_similar,
+		double ssd_denominator,
+		std::string compactness_measure)
 {
 
   /* Inputs to function:
      boundary_cc: Connected components on district boundaries
-
      aList: full adjacency list
-
      cds_old: Current cong district assignments
-
      cds_orig: original cong district assignments. For similarity constraint
-
      pop_vec: unit populations
-
      cd_pop_vec: congressional district populations
-
      group_pop_vec: populations of groups in geographic units
-
      ssdmat: sum of squared distance matrix
-
      minparity, maxparity: population parity - min and max
-
      p: parameter p for the number of swaps
-
      eprob: edgecut probability
-
      beta_population: strength of constraint for achieving population parity.
-
      beta_compact: strength of constraint for achieving compactness
-
      beta_segregation: strength of constraint for segregating subgroup
-
      beta_similar: strength of constraint for similarity to orig plan
-
      ssd_denominator: normalizing constant for sum of squared distance psi
-
-   */
+  */
   
   // Initialize objects for swap //
   NumericVector cds_prop = clone(cds_old);
@@ -536,6 +518,15 @@ List make_swaps(List boundary_cc,
 
   // Initialize metropolis-hastings probabilities
   double mh_prob = 1.0;
+
+  double pop_new_psi = 0.0;
+  double pop_old_psi = 0.0;
+  double compact_new_psi = 0.0;
+  double compact_old_psi = 0.0;
+  double segregation_new_psi = 0.0;
+  double segregation_old_psi = 0.0;
+  double similar_new_psi = 0.0;
+  double similar_old_psi = 0.0;
 
   // Number of unique congressional districts
   int ndists = max(cds_old) + 1;
@@ -687,45 +678,46 @@ List make_swaps(List boundary_cc,
 			    mh_prob);
     
     // Calculate beta constraints
-    double population_constraint = 1.0;
-    if(beta_population != 0.0){
-      population_constraint = as<double>(calc_betapop(cds_prop,
-						      cds_test,
-						      pop_vec,
-						      beta_population,
-						      cd_pair)["pop_ratio"]);
+    List population_constraint;
+    List compact_constraint;
+    List segregation_constraint;
+    List similar_constraint;
+    if(weight_population != 0.0){
+
+      population_constraint = calc_psipop(cds_prop, cds_test, pop_vec, cd_pair);
+
+      pop_new_psi += as<double>(population_constraint["pop_new_psi"]);
+      pop_old_psi += as<double>(population_constraint["pop_old_psi"]);
+      
     }
-    double compact_constraint = 1.0;
-    if(beta_compact != 0.0){
-      compact_constraint = as<double>(calc_betacompact(cds_prop,
-						       cds_test,
-						       pop_vec,
-						       beta_compact,
-						       cd_pair,
-						       ssdmat,
-						       ssd_denominator)["compact_ratio"]);
+    if(weight_compact != 0.0){
+      
+      compact_constraint = calc_psicompact(cds_prop, cds_test,
+					   cd_pair, compactness_measure,
+					   aList, areas_vec,
+					   borderlength_mat, true,
+					   pop_vec, ssdmat, ssd_denominator);
+
+      compact_new_psi += as<double>(compact_constraint["compact_new_psi"]);
+      compact_old_psi += as<double>(compact_constraint["compact_old_psi"]);
+      
     }
-    double segregation_constraint = 1.0;
-    if(beta_segregation != 0.0){
-      segregation_constraint = as<double>(calc_betasegregation(cds_prop,
-							       cds_test,
-							       pop_vec,
-							       beta_segregation,
-							       cd_pair,
-							       group_pop_vec)["segregation_ratio"]);
+    if(weight_segregation != 0.0){
+      
+      segregation_constraint = calc_psisegregation(cds_prop, cds_test, pop_vec, cd_pair, group_pop_vec);
+
+      segregation_new_psi += as<double>(segregation_constraint["segregation_new_psi"]);
+      segregation_old_psi += as<double>(segregation_constraint["segregation_new_psi"]);
+      
     }
-    double similar_constraint = 1.0;
-    if(beta_similar != 0.0){
-      similar_constraint = as<double>(calc_betasimilar(cds_prop,
-						       cds_test,
-						       cds_orig,
-						       beta_similar,
-						       cd_pair)["similar_ratio"]);
+    if(weight_similar != 0.0){
+      
+      similar_constraint = calc_psisimilar(cds_prop, cds_test, cds_orig, cd_pair);
+
+      similar_new_psi += as<double>(similar_constraint["similar_new_psi"]);
+      similar_old_psi += as<double>(similar_constraint["similar_old_psi"]);
+      
     }
-    
-    // Multiply mh_prob by constraint values
-    mh_prob = (double)mh_prob * population_constraint * compact_constraint *
-      segregation_constraint * similar_constraint;
     
     // Update cd assignments and cd populations
     cds_prop = cds_test;
@@ -742,6 +734,16 @@ List make_swaps(List boundary_cc,
     }
     
   }
+
+
+  // Multiply mh_prob by constraint values
+  double energy_new = weight_population * pop_new_psi + weight_compact * compact_new_psi
+    + weight_segregation * segregation_new_psi + weight_similar * similar_new_psi
+    + weight_countysplit * countysplit_new_psi;
+  double energy_old = weight_population * pop_old_psi + weight_compact * compact_old_psi
+    + weight_segregation * segregation_old_psi + weight_similar * similar_old_psi
+    + weight_countysplit * countysplit_old_psi;
+  mh_prob = (double)mh_prob * exp(-1.0 * beta * (energy_new - energy_old));
   
   // Create returned list
   List out;
@@ -749,10 +751,30 @@ List make_swaps(List boundary_cc,
   out["mh_prob"] = mh_prob;
   out["updated_cd_pops"] = cdspop_prop;
   out["goodprop"] = goodprop;
+  out["energy_new"] = energy_new;
+  out["energy_old"] = energy_old;
+	
+  if(weight_population != 0.0){
+    out["pop_new_psi"] = pop_new_psi;
+    out["pop_old_psi"] = pop_old_psi;
+  }
+  if(weight_compact != 0.0){
+    out["compact_new_psi"] = compact_new_psi;
+    out["compact_old_psi"] = compact_old_psi;
+  }
+  if(weight_segregation != 0.0){
+    out["segregation_new_psi"] = segregation_new_psi;
+    out["segregation_old_psi"] = segregation_old_psi;
+  }
+  if(weight_similar != 0.0){
+    out["similar_new_psi"] = similar_new_psi;
+    out["similar_old_psi"] = similar_old_psi;
+  }
   
   return out;
   
 }
+
 
 // Function to accept or reject swaps
 int mh_decision(double mh_prob)
