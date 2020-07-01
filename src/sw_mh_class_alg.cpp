@@ -104,6 +104,7 @@ List swMH(redist_aList_beta region,
   popvec = region.get_popvec();
   eprob = region.get_eprob();
   pct_dist_parity = region.get_pct_dist_parity();
+  beta_weights = region.get_beta_weights();
   
   // Preprocess vector of congressional district assignments
   if(min(cdvec) == 1){
@@ -220,20 +221,20 @@ List swMH(redist_aList_beta region,
     do{
       
       if(eprob != 0.0){
-	// First element is connected adjlist, second element is cut adjlist
-	cutedge_lists = cut_edges(aList_con, eprob);
+	      // First element is connected adjlist, second element is cut adjlist
+	      cutedge_lists = cut_edges(aList_con, eprob);
 	
-	////////////////////////////////////////////////////////////////////
-	// Third: generate a list of connected components within each cd //
-	///////////////////////////////////////////////////////////////////
-	/* List of connected partitions after edgecuts - first element is list of 
-	   partitions, second element is number of partitions */
-	boundary_partitions = bsearch_boundary(cutedge_lists["connectedlist"],
+	      ////////////////////////////////////////////////////////////////////
+	      // Third: generate a list of connected components within each cd //
+	      ///////////////////////////////////////////////////////////////////
+	      /* List of connected partitions after edgecuts - first element is list of 
+	         partitions, second element is number of partitions */
+	         boundary_partitions = bsearch_boundary(cutedge_lists["connectedlist"],
 					       boundary);
-	boundary_partitions_list = boundary_partitions["bsearch"];
+	         boundary_partitions_list = boundary_partitions["bsearch"];
       }else{
-	boundary_precincts = find(as<arma::vec>(boundary) == 1);
-	boundary_partitions_list = vector_to_list(boundary_precincts);
+	         boundary_precincts = find(as<arma::vec>(boundary) == 1);
+	         boundary_partitions_list = vector_to_list(boundary_precincts);
       }
 
       ///////////////////////////////////////////////////////////////////////
