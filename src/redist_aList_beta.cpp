@@ -27,13 +27,6 @@ void redist_aList_beta::init_constraints(double p, NumericVector b_s, NumericVec
   
 }
 
-void redist_aList_beta::init_betavals(NumericVector b)
-{
-  
-  betas = b;
-  
-}
-
 void redist_aList_beta::update_distswitch()
 {
 
@@ -73,10 +66,10 @@ double redist_aList_beta::get_pct_dist_parity()
   
 }
 
-void redist_aList_beta::update_betas(double b, string s)
+void redist_aList_beta::update_weights(double b, string s)
 {
 
-  betas[s] = b;
+  beta_weights[s] = b;
   
 }
 
@@ -191,7 +184,7 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
      
    */
 	
-  beta_population = betas["population"];
+  beta_population = beta_sequence["population"];
   
   // Calculate parity
   double parity = (double) sum(popvec) / (max(cdvec) + 1);
@@ -252,7 +245,7 @@ List calc_betacompact(arma::vec new_dists,
      
    */
   
-  beta_compact = betas["compact"];
+  beta_compact = beta_sequence["compact"];
   
   // Initialize psi values
   double psi_new = 0.0;
@@ -319,7 +312,7 @@ List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
      
   */
   
-  beta_segregation = betas["segregation"];
+  beta_segregation = beta_sequence["segregation"];
 
   // Initialize psi values
   double psi_new = 0.0;
@@ -396,7 +389,7 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 
    */
   
-  beta_similar = betas["similar"];
+  beta_similar = beta_sequence["similar"];
   
   // Initialize psi values
   double psi_new = 0.0;
@@ -454,6 +447,3 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 
   return out;
 }
-
-
-
