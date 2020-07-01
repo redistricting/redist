@@ -502,6 +502,3 @@ List swMH(redist_aList_beta region,
   return out;
   
 }
-    
-
-}
