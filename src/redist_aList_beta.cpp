@@ -2,7 +2,7 @@
 // Author: Rei Yatsuhashi
 // Institution: American School In Japan
 // Date Created: 2020/06/17
-// Date Modified: 2020/06/20
+// Date Modified: 2020/07/01
 // Purpose: Class for Constraints in Redistricting Adjacency
 /////////////////////////////////////
 
@@ -52,10 +52,17 @@ NumericVector redist_aList_beta::get_ssdmat()
   
 }
 
-NumericVector redist_aList_beta::get_betas() 
+NumericVector redist_aList_beta::get_beta_sequence() 
 {
   
-  return betas;
+  return beta_sequence;
+  
+}
+
+NumericVector redist_aList_beta::get_beta_weights() 
+{
+  
+  return beta_weights;
   
 }
 
