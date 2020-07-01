@@ -61,15 +61,16 @@ class redist_aList_beta: public redist_aList {
   
     // Constructor for constraint-related values
     void init_constraints(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd);
-    void init_betavals(NumericVector b);
     
     void update_current_dists(NumericVector c);
     void update_distswitch(); 
     NumericVector get_grouppopvec();
     NumericVector get_ssdmat();
-    NumericVector get_betas();
+    NumericVector get_beta_sequence();
+    NumericVector get_beta_weights();
     double get_pct_dist_parity();
-    void update_betas(double b, string s);
+
+    void update_weights(double b, string s);
 
     // Function that applies the Geyer Thompson algorithm for simulated tempering
     List changeBeta(double beta, double constraint);
