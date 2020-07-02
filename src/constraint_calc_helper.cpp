@@ -8,6 +8,7 @@
 
 // Header files
 #include <RcppArmadillo.h>
+#include "make_swaps_helper.h"
 
 using namespace Rcpp;
 
