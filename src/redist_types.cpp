@@ -8,22 +8,30 @@
 
 // Header files
 #include <RcppArmadillo.h>
-#include "redist_aList.h"
-#include "redist_aList_beta.h"
-// convert to header file: #include "redist_aList.cpp"
+#include "redist.h"
+#include "redist_types.h"
+#include <RcppArmadilloExtensions/sample.h>
+#include <time.h>
+#include <R.h>
+#include "sw_mh_helper.h"
+#include "make_swaps_helper.h"
+#include "constraint_calc_helper.h"
+#include "redist_analysis.h"
 
 using namespace Rcpp;
 
 // Class to consolidate methods relating to the constraints and tempering for redistricting
 
 // Constructor
-void redist_aList_beta::init_constraints(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd) 
+
+redist_aList_beta::redist_aList_beta(double p = 0.05, NumericVector b_s = {0.0, 0.0, 0.0, 0.0}, NumericVector b_w = {0.0, 0.0, 0.0, 0.0}, NumericMatrix ssd = {0.0}, Rcpp::NumericVector d = {0.0}) 
 {
   
   pct_dist_parity = p;
   beta_sequence = b_s;
   beta_weights= b_w;
   ssdmat = ssd;
+  distswitch = d;
   
 }
 
@@ -73,7 +81,7 @@ double redist_aList_beta::get_pct_dist_parity()
   
 }
 
-void redist_aList_beta::update_weights(double b, string s)
+void redist_aList_beta::update_weights(double b, std::string s)
 {
 
   beta_weights[s] = b;
@@ -94,7 +102,7 @@ List redist_aList_beta::changeBeta(double beta, double constraint)
    */
   
   // Find beta in betas
-  arma::uvec findBetaVec = find(beta_sequence == beta);
+  arma::uvec findBetaVec = arma::find((arma::vec) (beta_sequence) == beta);
   int findBeta = findBetaVec(0);
 
   // Object to test whether beta is at RHS of vector
@@ -191,7 +199,7 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
      
    */
 	
-  beta_population = beta_sequence["population"];
+  double beta_population = beta_sequence["population"];
   
   // Calculate parity
   double parity = (double) sum(popvec) / (max(cdvec) + 1);
@@ -209,8 +217,8 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
     // Population objects
     int pop_new = 0;
     int pop_old = 0;
-    arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(cdvec == distswitch(i));
+    arma::uvec new_cds = arma::find((new_dists) == distswitch(i));
+    arma::uvec current_cds = arma::find((arma::vec) (cdvec) == distswitch(i));
 
     // Get population of the old districts
     for(int j = 0; j < new_cds.size(); j++){
@@ -241,8 +249,8 @@ List redist_aList_beta::calc_betapop(arma::vec new_dists)
 
 // Function to calculate the strength of the beta constraint for compactness
 // Fryer and Holden 2011 RPI index
-List calc_betacompact(arma::vec new_dists,
-		      double denominator = 1.0){
+List redist_aList_beta::calc_betacompact(arma::vec new_dists,
+		      double denominator){
 
   /* Inputs to function:
   
@@ -252,7 +260,7 @@ List calc_betacompact(arma::vec new_dists,
      
    */
   
-  beta_compact = beta_sequence["compact"];
+  double beta_compact = beta_sequence["compact"];
   
   // Initialize psi values
   double psi_new = 0.0;
@@ -267,8 +275,8 @@ List calc_betacompact(arma::vec new_dists,
     // Initialize objects
     double ssd_new = 0.0;
     double ssd_old = 0.0;
-    arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(cdvec == distswitch(i));
+    arma::uvec new_cds = arma::find((new_dists) == distswitch(i));
+    arma::uvec current_cds = arma::find((arma::vec) (cdvec) == distswitch(i));
 
     // SSD for new partition
     for(int j = 0; j < new_cds.size(); j++){
@@ -318,7 +326,7 @@ List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
      
   */
   
-  beta_segregation = beta_sequence["segregation"];
+  double beta_segregation = beta_sequence["segregation"];
 
   // Initialize psi values
   double psi_new = 0.0;
@@ -340,8 +348,8 @@ List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
     int newpopall = 0;
     int oldpopgroup = 0;
     int newpopgroup = 0;
-    arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(cdvec == distswitch(i));
+    arma::uvec new_cds = arma::find((new_dists) == distswitch(i));
+    arma::uvec current_cds = arma::find((arma::vec) (cdvec) == distswitch(i));
   
     // Segregation for proposed assignments
     for(int j = 0; j < new_cds.size(); j++){
@@ -394,7 +402,7 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
      new_dists: vector of the new cong district assignments
    */
   
-  beta_similar = beta_sequence["similar"];
+  double beta_similar = beta_sequence["similar"];
   
   // Initialize psi values
   double psi_new = 0.0;
@@ -409,9 +417,9 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
     // Initialize objects
     int new_count = 0;
     int old_count = 0;
-    NumericVector orig_cds = wrap(find(cdorigvec == distswitch(i)));
-    arma::uvec new_cds = find(new_dists == distswitch(i));
-    arma::uvec current_cds = find(cdvec == distswitch(i));
+    NumericVector orig_cds = wrap(arma::find((arma::vec) (cdorigvec) == distswitch(i)));
+    arma::uvec new_cds = arma::find((new_dists) == distswitch(i));
+    arma::uvec current_cds = arma::find((arma::vec) (cdvec) == distswitch(i));
 
     // Similarity measure for proposed assignments
     for(int j = 0; j < new_cds.size(); j++){
@@ -422,7 +430,7 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 
     // Similarity measure for current assignments
     for(int j = 0; j < current_cds.size(); j++){
-      if(any(cdorigvec == cdvec(j)).is_true()){
+      if(any((cdorigvec) == cdvec(j)).is_true()){
     	old_count++;
       }
     }
@@ -452,3 +460,4 @@ List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 
   return out;
 }
+

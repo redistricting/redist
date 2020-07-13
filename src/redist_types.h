@@ -6,27 +6,30 @@
 // Purpose: Header file for redist_aList_beta class
 /////////////////////////////////////
 
-#ifndef REDIST_ALIST_BETA
-#define REDIST_ALIST_BETA
+#ifndef REDIST_ALIST_B
+#define REDIST_ALIST_B
+
+#include <RcppArmadillo.h>
+#include "redist.h"
 
 // Class to consolidate methods relating to the constraints and tempering for redistricting
 
 class redist_aList_beta: public redist_aList {
   
-  private:
+  protected:
     
     double pct_dist_parity;
   
-    NumericVector grouppopvec;
+    Rcpp::NumericVector grouppopvec;
   
-    NumericVector beta_sequence;
+    Rcpp::NumericVector beta_sequence;
     
-    NumericMatrix ssdmat;
+    Rcpp::NumericMatrix ssdmat;
     
-    NumericVector beta_weights = NumericVector::create(Named("population") = 0.0, Named("compact") = 0.0, 
-                                                Named("segregation") = 0.0, Named("similar") = 0.0);
+    Rcpp::NumericVector beta_weights = Rcpp::NumericVector::create(Rcpp::Named("population") = 0.0, Rcpp::Named("compact") = 0.0, 
+                                                Rcpp::Named("segregation") = 0.0, Rcpp::Named("similar") = 0.0);
   
-    NumericVector distswitch;
+    Rcpp::NumericVector distswitch;
   
     int adjswap = 1;
 
@@ -60,34 +63,34 @@ class redist_aList_beta: public redist_aList {
   public:
   
     // Constructor for constraint-related values
-    void init_constraints(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd);
+    redist_aList_beta(double p, Rcpp::NumericVector b_s, Rcpp::NumericVector b_w, Rcpp::NumericMatrix ssd, Rcpp::NumericVector d);
     
-    void update_current_dists(NumericVector c);
+    void update_current_dists(Rcpp::NumericVector c);
     void update_distswitch(); 
-    NumericVector get_grouppopvec();
-    NumericVector get_ssdmat();
-    NumericVector get_beta_sequence();
-    NumericVector get_beta_weights();
+    Rcpp::NumericVector get_grouppopvec();
+    Rcpp::NumericVector get_ssdmat();
+    Rcpp::NumericVector get_beta_sequence();
+    Rcpp::NumericVector get_beta_weights();
     double get_pct_dist_parity();
 
-    void update_weights(double b, string s);
+    void update_weights(double b, std::string s);
 
     // Function that applies the Geyer Thompson algorithm for simulated tempering
-    List changeBeta(double beta, double constraint);
+    Rcpp::List changeBeta(double beta, double constraint);
   
     // Function to calculate the strength of the beta constraint for population
-    List calc_betapop(arma::vec new_dists);
+    Rcpp::List calc_betapop(arma::vec new_dists);
     
     // Function to calculate the strength of the beta constraint for compactness
     // Fryer and Holden 2011 RPI index
-    List calc_betacompact(arma::vec new_dists, double denominator = 1.0);
+    Rcpp::List calc_betacompact(arma::vec new_dists, double denominator = 1.0);
 	
     // Function to constrain by segregating a group
-    List calc_betasegregation(arma::vec new_dists);
+    Rcpp::List calc_betasegregation(arma::vec new_dists);
   
     // Function to constrain on plan similarity to original plan
-    List calc_betasimilar(arma::vec new_dists);
+    Rcpp::List calc_betasimilar(arma::vec new_dists);
 
-}
+};
 
 #endif

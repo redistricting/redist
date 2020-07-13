@@ -8,7 +8,7 @@
 
 // Header files
 #include <RcppArmadillo.h>
-#include "redist_aList.h"
+#include "redist.h"
 
 using namespace Rcpp;
 
@@ -211,7 +211,7 @@ NumericVector redist_aList::findBoundary(List conList)
 		 
    */
 	
-  fullList = aList;
+  List fullList = aList;
 
   // Initialize container vector of 0's (not boundary) and 1's (boundary)
   NumericVector isBoundary(fullList.size());
@@ -648,7 +648,7 @@ List redist_aList::propose_partition(List boundary_cc, NumericVector cds_prop)
 	
   NumericVector prop_partitions = boundary_cc(sample_index);
   boundary_cc.erase(sample_index);
-  curr_cd = cds_prop(prop_partitions(0));
+  int curr_cd = cds_prop(prop_partitions(0));
 
   List out;
   out["prop_partition"] = prop_partitions;
@@ -763,11 +763,13 @@ int redist_aList::elim_check(NumericVector prop_partition, NumericVector cds)
 }
 
 // Function to do the split check
-int redist_aList::split_check(List adjcheck_out, NumericVector cds_prop)
+int redist_aList::split_check(NumericVector prop_partitions, List adjcheck_out, NumericVector cds_prop)
 {
 	
   // Indicator for elimination
   int splitcheck = 0;
+
+  int ndists = max(cdvec) + 1;
 	
   NumericVector possible_cd_swaps = as<NumericVector>(adjcheck_out["proposed_cds"]);
   NumericVector cds_splittest = clone(cds_prop);
@@ -777,11 +779,13 @@ int redist_aList::split_check(List adjcheck_out, NumericVector cds_prop)
   }
 	
   // Get adjacency list
-  List aList_testsplit = genAlConn(aList, cds_splittest);
+  List aList_testsplit = genAlConn(cds_splittest);
 	
   // Get number of connected components
   int num_cds = countpartitions(aList_testsplit);
   
+  
+
   if(num_cds != ndists){
     splitcheck = 1;
   }
@@ -790,6 +794,7 @@ int redist_aList::split_check(List adjcheck_out, NumericVector cds_prop)
 
 // Function to update district populations
 void redist_aList::update_cd_pop_vec(NumericVector prop_partition,
+                                   NumericVector unitpop_vec, 
 			          int prop_cd,
 			          int curr_cd)
 {

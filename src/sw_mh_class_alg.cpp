@@ -11,12 +11,11 @@
 #include <RcppArmadilloExtensions/sample.h>
 #include <time.h>
 #include <R.h>
-#include "redist_aList.h"
-#include "redist_aList_beta.h"
 #include "sw_mh_helper.h"
 #include "make_swaps_helper.h"
 #include "constraint_calc_helper.h"
 #include "redist_analysis.h"
+#include "redist_aList_beta.h"
 
 using namespace Rcpp; 
 
@@ -49,8 +48,8 @@ arma::uvec get_not_in(arma::uvec vec1, arma::uvec vec2){
    Algorithm 1 in Barbu and Zhu (2005) using classes. */
 // [[Rcpp::export]]
 
-List swMH(redist_aList_beta region,
-	  int nsims,
+List swMH(redist_aList_beta &region,
+          int nsims,
 	  double beta = 0.0,
 	  double ssd_denom = 1.0,
 	  int anneal_beta_population = 0,
