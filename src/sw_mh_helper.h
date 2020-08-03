@@ -11,6 +11,10 @@
 
 
 Rcpp::NumericVector init_pop(Rcpp::NumericVector popvec, arma::vec cds);
+Rcpp::List genAlConn(Rcpp::List aList,
+		     Rcpp::NumericVector cds);
+Rcpp::NumericVector findBoundary(Rcpp::List fullList,
+				 Rcpp::List conList);
 Rcpp::List add_ties(Rcpp::List aList);
 Rcpp::List cut_edges(Rcpp::List aList_con,
 		     double eprob);
@@ -25,22 +29,16 @@ Rcpp::List make_swaps(Rcpp::List boundary_cc,
 		      Rcpp::NumericVector pop_vec,
 		      Rcpp::NumericVector cd_pop_vec,
 		      Rcpp::NumericVector group_pop_vec,
-		      Rcpp::NumericVector areas_vec,
-		      arma::mat borderlength_mat,
 		      Rcpp::NumericMatrix ssdmat,
-		      Rcpp::NumericVector county_membership,
 		      double minparity,
 		      double maxparity,
 		      int p,
 		      double eprob,
-		      double beta,
-		      double weight_population,
-		      double weight_compact,
-		      double weight_segregation,
-		      double weight_similar,
-		      double weight_countysplit,
-		      double ssd_denominator,
-		      std::string compactness_measure);
+		      double beta_population,
+		      double beta_compact,
+		      double beta_segregation,
+		      double beta_similar,
+		      double ssd_denominator);
 int mh_decision(double mh_prob);
 Rcpp::List changeBeta(arma::vec betavec,
 		      double beta,
@@ -49,4 +47,3 @@ Rcpp::List changeBeta(arma::vec betavec,
 		      int adjswap = 1);
 
 #endif
-

@@ -9,6 +9,7 @@
 // Header files
 #include <RcppArmadillo.h>
 #include "redist.h"
+#pragma diagnostic clang pop
 
 using namespace Rcpp;
 

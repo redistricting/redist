@@ -15,7 +15,7 @@
 #include "make_swaps_helper.h"
 #include "constraint_calc_helper.h"
 #include "redist_analysis.h"
-#include "redist_aList_beta.h"
+#include "redist_types.h"
 
 using namespace Rcpp; 
 
@@ -96,6 +96,15 @@ List swMH(redist_aList_beta &region,
       beta_seq(i) = (double) i/num_annealing_steps;
     }
   }
+
+  List aList;
+  NumericVector cdvec;
+  NumericVector cdorigvec;
+  NumericVector popvec;
+  double eprob;
+  double pct_dist_parity;
+  NumericVector beta_weights;
+  int lambda;
   
   aList = region.get_aList();
   cdvec = region.get_cdvec();
@@ -255,13 +264,12 @@ List swMH(redist_aList_beta &region,
 				   max_parity,
 				   p,
 				   eprob,
-				   beta,
 				   beta_weights["population"],
 				   beta_weights["compact"],
 				   beta_weights["segregation"],
 				   beta_weights["similar"],
-				   ssd_denom,
-				   compactness_measure);
+				   ssd_denom //, compactness_measure
+                                   );
 
     }while(as<int>(swap_partitions["goodprop"]) == 0); 
       
@@ -464,7 +472,6 @@ List swMH(redist_aList_beta &region,
     out["constraint_compact"] = psicompact_store;
     out["constraint_segregation"] = psisegregation_store;
     out["constraint_similar"] = psisimilar_store;
-    out["constraint_countysplit"] = psicountysplit_store;
     out["boundary_partitions"] = boundarypartitions_store;
     out["boundaryratio"] = boundaryratio_store;
     if(adapt_beta == "tempering"){
@@ -490,7 +497,6 @@ List swMH(redist_aList_beta &region,
     out["constraint_compact"] = psicompact_store[k-1];
     out["constraint_segregation"] = psisegregation_store[k-1];
     out["constraint_similar"] = psisimilar_store[k-1];
-    out["constraint_countysplit"] = psicountysplit_store[k-1];
     out["boundary_partitions"] = boundarypartitions_store[k-1];
     out["boundaryratio"] = boundaryratio_store[k-1];
     if(adapt_eprob == 1){

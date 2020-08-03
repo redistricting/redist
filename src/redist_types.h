@@ -10,10 +10,14 @@
 #define REDIST_ALIST_B
 
 #include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+#pragma diagnostic clang pop
 #include "redist.h"
 
-// Class to consolidate methods relating to the constraints and tempering for redistricting
+class redist_aList_beta;
+RCPP_EXPOSED_CLASS(redist_aList_beta)
 
+// Class to consolidate methods relating to the constraints and tempering for redistricting
 class redist_aList_beta: public redist_aList {
   
   protected:
@@ -63,12 +67,12 @@ class redist_aList_beta: public redist_aList {
   public:
   
     // Constructor for constraint-related values
-    redist_aList_beta(double p, Rcpp::NumericVector b_s, Rcpp::NumericVector b_w, Rcpp::NumericMatrix ssd, Rcpp::NumericVector d);
+    redist_aList_beta(double p = 0.05, Rcpp::NumericVector b_s = {0.0, 0.0, 0.0, 0.0}, Rcpp::NumericVector b_w = {0.0, 0.0, 0.0, 0.0}, Rcpp::NumericMatrix ssd = {0.0}, Rcpp::NumericVector d = {0.0});
     
     void update_current_dists(Rcpp::NumericVector c);
     void update_distswitch(); 
     Rcpp::NumericVector get_grouppopvec();
-    Rcpp::NumericVector get_ssdmat();
+    Rcpp::NumericMatrix get_ssdmat();
     Rcpp::NumericVector get_beta_sequence();
     Rcpp::NumericVector get_beta_weights();
     double get_pct_dist_parity();
@@ -94,3 +98,19 @@ class redist_aList_beta: public redist_aList {
 };
 
 #endif
+
+// Expose classes to R:
+RCPP_MODULE(redist_aList_beta_cpp){
+  using namespace Rcpp;
+  
+  class_<redist_aList_beta>("redist_aList_beta")
+    .default_constructor("Default Constructor")
+    .method("update_weights", &redist_aList_beta::update_weights)
+    .method("changeBeta", &redist_aList_beta::changeBeta)
+    .method("calc_betapop", &redist_aList_beta::calc_betapop)
+    .method("calc_betacompact", &redist_aList_beta::calc_betacompact)
+    .method("calc_betasegregation", &redist_aList_beta::calc_betasegregation)
+    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
+  ;
+}
+//.method("", &redist_aList_beta::)

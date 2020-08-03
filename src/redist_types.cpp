@@ -17,6 +17,7 @@
 #include "make_swaps_helper.h"
 #include "constraint_calc_helper.h"
 #include "redist_analysis.h"
+#pragma diagnostic clang pop
 
 using namespace Rcpp;
 
@@ -24,7 +25,7 @@ using namespace Rcpp;
 
 // Constructor
 
-redist_aList_beta::redist_aList_beta(double p = 0.05, NumericVector b_s = {0.0, 0.0, 0.0, 0.0}, NumericVector b_w = {0.0, 0.0, 0.0, 0.0}, NumericMatrix ssd = {0.0}, Rcpp::NumericVector d = {0.0}) 
+redist_aList_beta::redist_aList_beta(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd, Rcpp::NumericVector d) 
 {
   
   pct_dist_parity = p;
@@ -53,7 +54,7 @@ NumericVector redist_aList_beta::get_grouppopvec()
   
 }
 
-NumericVector redist_aList_beta::get_ssdmat() 
+NumericMatrix redist_aList_beta::get_ssdmat() 
 {
   
   return ssdmat;

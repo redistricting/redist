@@ -6,16 +6,15 @@
 /*
   The following symbols/expressions for .NAME have been omitted
 
-    _redist_genAlConn
-    _redist_findBoundary
     _redist_cppGeneratePartitions
     _redist_countpartitions
     _redist_calcPWDh
-    _redist_calc_polsbypopper
     _redist_segregationcalc
     _redist_rsg
     _redist_sample_partition
     _redist_swMH
+    _redist_genAlConn
+    _redist_findBoundary
 
   Most likely possible values need to be added below.
 */

@@ -8,30 +8,6 @@
 
 using namespace Rcpp;
 
-// genAlConn
-List genAlConn(List aList, NumericVector cds);
-RcppExport SEXP _redist_genAlConn(SEXP aListSEXP, SEXP cdsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type aList(aListSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type cds(cdsSEXP);
-    rcpp_result_gen = Rcpp::wrap(genAlConn(aList, cds));
-    return rcpp_result_gen;
-END_RCPP
-}
-// findBoundary
-NumericVector findBoundary(List fullList, List conList);
-RcppExport SEXP _redist_findBoundary(SEXP fullListSEXP, SEXP conListSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type fullList(fullListSEXP);
-    Rcpp::traits::input_parameter< List >::type conList(conListSEXP);
-    rcpp_result_gen = Rcpp::wrap(findBoundary(fullList, conList));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cppGeneratePartitions
 List cppGeneratePartitions(List adjList, int numBlocks, NumericVector popSizes, int numConstraintLow, int numConstraintHigh, double popConstraintLow, double popConstraintHigh);
 RcppExport SEXP _redist_cppGeneratePartitions(SEXP adjListSEXP, SEXP numBlocksSEXP, SEXP popSizesSEXP, SEXP numConstraintLowSEXP, SEXP numConstraintHighSEXP, SEXP popConstraintLowSEXP, SEXP popConstraintHighSEXP) {
@@ -68,23 +44,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(calcPWDh(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// calc_polsbypopper
-double calc_polsbypopper(arma::uvec new_cds, arma::vec areas_vec, arma::vec boundarylist_new, arma::mat borderlength_mat, arma::vec pop_vec, List aList, bool discrete);
-RcppExport SEXP _redist_calc_polsbypopper(SEXP new_cdsSEXP, SEXP areas_vecSEXP, SEXP boundarylist_newSEXP, SEXP borderlength_matSEXP, SEXP pop_vecSEXP, SEXP aListSEXP, SEXP discreteSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::uvec >::type new_cds(new_cdsSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type areas_vec(areas_vecSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type boundarylist_new(boundarylist_newSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type borderlength_mat(borderlength_matSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pop_vec(pop_vecSEXP);
-    Rcpp::traits::input_parameter< List >::type aList(aListSEXP);
-    Rcpp::traits::input_parameter< bool >::type discrete(discreteSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_polsbypopper(new_cds, areas_vec, boundarylist_new, borderlength_mat, pop_vec, aList, discrete));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -155,6 +114,30 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type num_annealing_steps(num_annealing_stepsSEXP);
     Rcpp::traits::input_parameter< int >::type num_cold_steps(num_cold_stepsSEXP);
     rcpp_result_gen = Rcpp::wrap(swMH(region, nsims, beta, ssd_denom, anneal_beta_population, anneal_beta_compact, anneal_beta_segregation, anneal_beta_similar, exact_mh, adapt_eprob, adapt_lambda, adapt_beta, compactness_measure, num_hot_steps, num_annealing_steps, num_cold_steps));
+    return rcpp_result_gen;
+END_RCPP
+}
+// genAlConn
+List genAlConn(List aList, NumericVector cds);
+RcppExport SEXP _redist_genAlConn(SEXP aListSEXP, SEXP cdsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type aList(aListSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type cds(cdsSEXP);
+    rcpp_result_gen = Rcpp::wrap(genAlConn(aList, cds));
+    return rcpp_result_gen;
+END_RCPP
+}
+// findBoundary
+NumericVector findBoundary(List fullList, List conList);
+RcppExport SEXP _redist_findBoundary(SEXP fullListSEXP, SEXP conListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type fullList(fullListSEXP);
+    Rcpp::traits::input_parameter< List >::type conList(conListSEXP);
+    rcpp_result_gen = Rcpp::wrap(findBoundary(fullList, conList));
     return rcpp_result_gen;
 END_RCPP
 }
