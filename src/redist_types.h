@@ -13,6 +13,12 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #pragma diagnostic clang pop
 #include "redist.h"
+#include <time.h>
+#include <R.h>
+#include "sw_mh_helper.h"
+#include "make_swaps_helper.h"
+#include "constraint_calc_helper.h"
+#include "redist_analysis.h"
 
 class redist_aList_beta;
 RCPP_EXPOSED_CLASS(redist_aList_beta)

@@ -7,15 +7,8 @@
 /////////////////////////////////////
 
 // Header files
-#include <RcppArmadillo.h>
-#include <RcppArmadilloExtensions/sample.h>
-#include <time.h>
-#include <R.h>
-#include "sw_mh_helper.h"
-#include "make_swaps_helper.h"
-#include "constraint_calc_helper.h"
-#include "redist_analysis.h"
 #include "redist_types.h"
+
 
 using namespace Rcpp; 
 

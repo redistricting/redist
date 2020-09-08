@@ -10,6 +10,10 @@
 #define REDIST_ALIST
 #pragma once
 
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+#pragma diagnostic clang pop
+
 class redist_aList;
 RCPP_EXPOSED_CLASS(redist_aList)
 
