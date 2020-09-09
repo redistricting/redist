@@ -9,7 +9,6 @@
 // Header files
 #include "redist_types.h"
 
-
 using namespace Rcpp; 
 
 List vector_to_list(arma::uvec vecname){

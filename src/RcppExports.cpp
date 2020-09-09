@@ -92,12 +92,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // swMH
-List swMH(redist_aList_beta& region, int nsims, double beta, double ssd_denom, int anneal_beta_population, int anneal_beta_compact, int anneal_beta_segregation, int anneal_beta_similar, int exact_mh, int adapt_eprob, int adapt_lambda, std::string adapt_beta, std::string compactness_measure, int num_hot_steps, int num_annealing_steps, int num_cold_steps);
+List swMH(redist_aList_beta region, int nsims, double beta, double ssd_denom, int anneal_beta_population, int anneal_beta_compact, int anneal_beta_segregation, int anneal_beta_similar, int exact_mh, int adapt_eprob, int adapt_lambda, std::string adapt_beta, std::string compactness_measure, int num_hot_steps, int num_annealing_steps, int num_cold_steps);
 RcppExport SEXP _redist_swMH(SEXP regionSEXP, SEXP nsimsSEXP, SEXP betaSEXP, SEXP ssd_denomSEXP, SEXP anneal_beta_populationSEXP, SEXP anneal_beta_compactSEXP, SEXP anneal_beta_segregationSEXP, SEXP anneal_beta_similarSEXP, SEXP exact_mhSEXP, SEXP adapt_eprobSEXP, SEXP adapt_lambdaSEXP, SEXP adapt_betaSEXP, SEXP compactness_measureSEXP, SEXP num_hot_stepsSEXP, SEXP num_annealing_stepsSEXP, SEXP num_cold_stepsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< redist_aList_beta& >::type region(regionSEXP);
+    Rcpp::traits::input_parameter< redist_aList_beta >::type region(regionSEXP);
     Rcpp::traits::input_parameter< int >::type nsims(nsimsSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type ssd_denom(ssd_denomSEXP);
