@@ -547,18 +547,18 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 
 #endif
 
-// Expose classes to R:
-RCPP_MODULE(redist_aList_beta_cpp){
-  using namespace Rcpp;
-  
-  class_<redist_aList_beta>("redist_aList_beta")
-    .default_constructor("Default Constructor")
-    .method("update_weights", &redist_aList_beta::update_weights)
-    .method("changeBeta", &redist_aList_beta::changeBeta)
-    .method("calc_betapop", &redist_aList_beta::calc_betapop)
-    .method("calc_betacompact", &redist_aList_beta::calc_betacompact)
-    .method("calc_betasegregation", &redist_aList_beta::calc_betasegregation)
-    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
-  ;
-}
+//// Expose classes to R:
+//RCPP_MODULE(redist_aList_beta_cpp){
+//  using namespace Rcpp;
+//  
+//  class_<redist_aList_beta>("redist_aList_beta")
+//    .default_constructor("Default Constructor")
+//    .method("update_weights", &redist_aList_beta::update_weights)
+//    .method("changeBeta", &redist_aList_beta::changeBeta)
+//    .method("calc_betapop", &redist_aList_beta::calc_betapop)
+//    .method("calc_betacompact", &redist_aList_beta::calc_betacompact)
+//    .method("calc_betasegregation", &redist_aList_beta::calc_betasegregation)
+//    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
+//  ;
+//}
 //.method("", &redist_aList_beta::)

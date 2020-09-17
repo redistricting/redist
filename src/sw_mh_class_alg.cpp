@@ -39,7 +39,6 @@ arma::uvec get_not_in(arma::uvec vec1, arma::uvec vec2){
 /* Primary function to run redistricting algorithm. An implementation of 
    Algorithm 1 in Barbu and Zhu (2005) using classes. */
 // [[Rcpp::export]]
-
 List swMH(redist_aList_beta &region,
           int nsims,
 	  double beta = 0.0,
@@ -96,7 +95,7 @@ List swMH(redist_aList_beta &region,
   double eprob;
   double pct_dist_parity;
   NumericVector beta_weights;
-  int lambda;
+  int lambda = 0;
   
   aList = region.get_aList();
   cdvec = region.get_cdvec();

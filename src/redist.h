@@ -1050,30 +1050,30 @@ inline int redist_aList::mh_decision(double prob)
 
 #endif 
 
-// Expose classes to R:
-RCPP_MODULE(redist_aList_cpp){
-  using namespace Rcpp;
-  
-  class_<redist_aList>( "redist_aList" )
-    .default_constructor("Default Constructor")
-    .method("init_pop", &redist_aList::init_pop)
-    .method("genAlConn", &redist_aList::genAlConn)
-    .method("findBoundary",&redist_aList::findBoundary)
-    .method("add_ties", &redist_aList::add_ties)
-    .method("cut_edges", &redist_aList::cut_edges)
-    .method("countpartitions",&redist_aList::countpartitions)
-    .method("bsearch_boundary", &redist_aList::bsearch_boundary)
-    .method("count_valid", &redist_aList::count_valid)
-    .method("draw_p", &redist_aList::draw_p)
-    .method("propose_partition", &redist_aList::propose_partition)
-    .method("adjcheck_propcd", &redist_aList::adjcheck_propcd)
-    .method("elim_check", &redist_aList::elim_check)
-    .method("split_check", &redist_aList::split_check)
-    .method("update_cd_pop_vec", &redist_aList::update_cd_pop_vec)
-    .method("update_eprob", &redist_aList::update_eprob)
-    .method("update_mhprob", &redist_aList::update_mhprob)
-    .method("update_lambda", &redist_aList::update_lambda)
-    .method("mh_decision", &redist_aList::mh_decision)
-  ;
-}
+// // Expose classes to R:
+// RCPP_MODULE(redist_aList_cpp){
+//   using namespace Rcpp;
+//   
+//   class_<redist_aList>( "redist_aList" )
+//     .default_constructor("Default Constructor")
+//     .method("init_pop", &redist_aList::init_pop)
+//     .method("genAlConn", &redist_aList::genAlConn)
+//     .method("findBoundary",&redist_aList::findBoundary)
+//     .method("add_ties", &redist_aList::add_ties)
+//     .method("cut_edges", &redist_aList::cut_edges)
+//     .method("countpartitions",&redist_aList::countpartitions)
+//     .method("bsearch_boundary", &redist_aList::bsearch_boundary)
+//     .method("count_valid", &redist_aList::count_valid)
+//     .method("draw_p", &redist_aList::draw_p)
+//     .method("propose_partition", &redist_aList::propose_partition)
+//     .method("adjcheck_propcd", &redist_aList::adjcheck_propcd)
+//     .method("elim_check", &redist_aList::elim_check)
+//     .method("split_check", &redist_aList::split_check)
+//     .method("update_cd_pop_vec", &redist_aList::update_cd_pop_vec)
+//     .method("update_eprob", &redist_aList::update_eprob)
+//     .method("update_mhprob", &redist_aList::update_mhprob)
+//     .method("update_lambda", &redist_aList::update_lambda)
+//     .method("mh_decision", &redist_aList::mh_decision)
+//   ;
+// }
 //.method("",redist_aList::)
