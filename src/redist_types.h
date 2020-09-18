@@ -21,7 +21,7 @@ class redist_aList_beta;
 RCPP_EXPOSED_CLASS(redist_aList_beta)
 
 // Class to consolidate methods relating to the constraints and tempering for redistricting
-class redist_aList_beta: public redist_aList {
+class redist_aList_beta: public redist_aList{
   
   protected:
     
@@ -543,10 +543,11 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
   return out;
 }
 
-
-
 #endif
 
+
+
+<<<<<<< Updated upstream
 //// Expose classes to R:
 //RCPP_MODULE(redist_aList_beta_cpp){
 //  using namespace Rcpp;
@@ -561,4 +562,43 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 //    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
 //  ;
 //}
+=======
+// Expose classes to R:
+RCPP_MODULE(redist_aList_beta_cpp){
+  using namespace Rcpp;
+  class_<redist_aList>( "redist_aList" )
+    .default_constructor("Default Constructor")
+    .method("init_pop", &redist_aList::init_pop)
+    .method("genAlConn", &redist_aList::genAlConn)
+    .method("findBoundary",&redist_aList::findBoundary)
+    .method("add_ties", &redist_aList::add_ties)
+    .method("cut_edges", &redist_aList::cut_edges)
+    .method("countpartitions",&redist_aList::countpartitions)
+    .method("bsearch_boundary", &redist_aList::bsearch_boundary)
+    .method("count_valid", &redist_aList::count_valid)
+    .method("draw_p", &redist_aList::draw_p)
+    .method("propose_partition", &redist_aList::propose_partition)
+    .method("adjcheck_propcd", &redist_aList::adjcheck_propcd)
+    .method("elim_check", &redist_aList::elim_check)
+    .method("split_check", &redist_aList::split_check)
+    .method("update_cd_pop_vec", &redist_aList::update_cd_pop_vec)
+    .method("update_eprob", &redist_aList::update_eprob)
+    .method("update_mhprob", &redist_aList::update_mhprob)
+    .method("update_lambda", &redist_aList::update_lambda)
+    .method("mh_decision", &redist_aList::mh_decision)
+  ;
+  class_<redist_aList_beta>("redist_aList_beta")
+    .derives<redist_aList>( "redist_aList" )
+    .default_constructor("Default Constructor")
+    .method("update_weights", &redist_aList_beta::update_weights)
+    .method("changeBeta", &redist_aList_beta::changeBeta)
+    .method("calc_betapop", &redist_aList_beta::calc_betapop)
+    .method("calc_betacompact", &redist_aList_beta::calc_betacompact)
+    .method("calc_betasegregation", &redist_aList_beta::calc_betasegregation)
+    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
+  ;
+}
+>>>>>>> Stashed changes
 //.method("", &redist_aList_beta::)
+
+

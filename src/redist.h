@@ -15,8 +15,8 @@
 
 using namespace Rcpp;
 
-class redist_aList;
-RCPP_EXPOSED_CLASS(redist_aList)
+// class redist_aList;
+// RCPP_EXPOSED_CLASS(redist_aList)
 
 class redist_aList {
 	
@@ -1047,9 +1047,12 @@ inline int redist_aList::mh_decision(double prob)
 
 }
 
-
 #endif 
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 // // Expose classes to R:
 // RCPP_MODULE(redist_aList_cpp){
 //   using namespace Rcpp;
@@ -1077,3 +1080,4 @@ inline int redist_aList::mh_decision(double prob)
 //   ;
 // }
 //.method("",redist_aList::)
+
