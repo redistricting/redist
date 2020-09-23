@@ -22,58 +22,58 @@ RCPP_EXPOSED_CLASS(redist_aList_beta)
 
 // Class to consolidate methods relating to the constraints and tempering for redistricting
 class redist_aList_beta: public redist_aList{
-  
+
   protected:
-    
+
     double pct_dist_parity;
-  
+
     Rcpp::NumericVector grouppopvec;
-  
+
     Rcpp::NumericVector beta_sequence;
-    
+
     Rcpp::NumericMatrix ssdmat;
-    
-    Rcpp::NumericVector beta_weights = Rcpp::NumericVector::create(Rcpp::Named("population") = 0.0, Rcpp::Named("compact") = 0.0, 
+
+    Rcpp::NumericVector beta_weights = Rcpp::NumericVector::create(Rcpp::Named("population") = 0.0, Rcpp::Named("compact") = 0.0,
                                                 Rcpp::Named("segregation") = 0.0, Rcpp::Named("similar") = 0.0);
-  
+
     Rcpp::NumericVector distswitch;
-  
+
     int adjswap = 1;
 
     /* Inputs to function:
-     
+
      pct_dist_parity: strength of population parity requirement
-     
+
      grouppopvec: vector of subgroup populations for each geographic unit
-     
+
      beta_sequence: sequence of betas to anneal over
-     
+
      ssdmat: matrix of squared distances between geographic units. For constraining
      on compactness
-     
+
      beta_weights: {beta_population, beta_compact, beta_segregation, beta_similar}
-     
+
        beta_population: strength of constraint for achieving population parity
-     
+
        beta_compact: strength of constraint for achieving district compactness
-     
+
        beta_segregation: strength of constraint for packing group into district
-     
+
        beta_similar: strength of constraint for examining plans similar to original district
-     
+
      distswitch: vector containing the old district, and the proposed new district
-     
+
      adjswap: flag - do we want adjacent swaps? default to 1
-     
+
      */
-  
+
   public:
-  
+
     // Constructor for constraint-related values
     redist_aList_beta(double p = 0.05, Rcpp::NumericVector b_s = {0.0, 0.0, 0.0, 0.0}, Rcpp::NumericVector b_w = {0.0, 0.0, 0.0, 0.0}, Rcpp::NumericMatrix ssd = {0.0}, Rcpp::NumericVector d = {0.0});
-    
+
     void update_current_dists(Rcpp::NumericVector c);
-    void update_distswitch(); 
+    void update_distswitch();
     Rcpp::NumericVector get_grouppopvec();
     Rcpp::NumericMatrix get_ssdmat();
     Rcpp::NumericVector get_beta_sequence();
@@ -84,17 +84,17 @@ class redist_aList_beta: public redist_aList{
 
     // Function that applies the Geyer Thompson algorithm for simulated tempering
     Rcpp::List changeBeta(double beta, double constraint);
-  
+
     // Function to calculate the strength of the beta constraint for population
     Rcpp::List calc_betapop(arma::vec new_dists);
-    
+
     // Function to calculate the strength of the beta constraint for compactness
     // Fryer and Holden 2011 RPI index
     Rcpp::List calc_betacompact(arma::vec new_dists, double denominator = 1.0);
-	
+
     // Function to constrain by segregating a group
     Rcpp::List calc_betasegregation(arma::vec new_dists);
-  
+
     // Function to constrain on plan similarity to original plan
     Rcpp::List calc_betasimilar(arma::vec new_dists);
 
@@ -106,15 +106,15 @@ using namespace Rcpp;
 
 // Constructor
 
-inline redist_aList_beta::redist_aList_beta(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd, Rcpp::NumericVector d) 
+inline redist_aList_beta::redist_aList_beta(double p, NumericVector b_s, NumericVector b_w, NumericMatrix ssd, Rcpp::NumericVector d)
 {
-  
+
   pct_dist_parity = p;
   beta_sequence = b_s;
   beta_weights= b_w;
   ssdmat = ssd;
   distswitch = d;
-  
+
 }
 
 inline void redist_aList_beta::update_distswitch()
@@ -125,64 +125,64 @@ inline void redist_aList_beta::update_distswitch()
       distswitch.push_back(cdvec(i));
     }
   }
-  
+
 }
 
-inline NumericVector redist_aList_beta::get_grouppopvec() 
+inline NumericVector redist_aList_beta::get_grouppopvec()
 {
-  
+
   return grouppopvec;
-  
+
 }
 
-inline NumericMatrix redist_aList_beta::get_ssdmat() 
+inline NumericMatrix redist_aList_beta::get_ssdmat()
 {
-  
+
   return ssdmat;
-  
+
 }
 
-inline NumericVector redist_aList_beta::get_beta_sequence() 
+inline NumericVector redist_aList_beta::get_beta_sequence()
 {
-  
+
   return beta_sequence;
-  
+
 }
 
-inline NumericVector redist_aList_beta::get_beta_weights() 
+inline NumericVector redist_aList_beta::get_beta_weights()
 {
-  
+
   return beta_weights;
-  
+
 }
 
-inline double redist_aList_beta::get_pct_dist_parity() 
+inline double redist_aList_beta::get_pct_dist_parity()
 {
-  
+
   return pct_dist_parity;
-  
+
 }
 
 inline void redist_aList_beta::update_weights(double b, std::string s)
 {
 
   beta_weights[s] = b;
-  
+
 }
 
 
 // Function that applies the Geyer Thompson algorithm for simulated tempering
 inline List redist_aList_beta::changeBeta(double beta, double constraint)
 {
-  
-  /* Inputs to function 
-     
+
+  /* Inputs to function
+
      beta: current value of the beta constraint
-     
+
      constraint: the evaluation of the constraint on the current plan
-     
+
    */
-  
+
   // Find beta in betas
   arma::uvec findBetaVec = arma::find((arma::vec) (beta_sequence) == beta);
   int findBeta = findBetaVec(0);
@@ -199,7 +199,7 @@ inline List redist_aList_beta::changeBeta(double beta, double constraint)
 
   // Procedure if conducting adjacent swaps
   if(adjswap == 1){
-    if(findBeta == 0){ // At first element in betas   
+    if(findBeta == 0){ // At first element in betas
       qij = 1;
       qji = .5;
       wi = beta_weights(0);
@@ -235,7 +235,7 @@ inline List redist_aList_beta::changeBeta(double beta, double constraint)
     arma::vec rand_randindex = runif(1, 0, 1000000000);
     int randindex = fmod(rand_randindex(0), betaLoc);
 
-    // Weight wi 
+    // Weight wi
     wi = beta_weights(findBeta);
 
     // Draw the proposed beta value
@@ -276,13 +276,13 @@ inline List redist_aList_beta::calc_betapop(arma::vec new_dists)
 {
 
   /* Inputs to function
-     
+
      new_dists: vector of the new cong district assignments
-     
+
    */
-	
+
   double beta_population = beta_sequence["population"];
-  
+
   // Calculate parity
   double parity = (double) sum(popvec) / (max(cdvec) + 1);
 
@@ -335,15 +335,15 @@ inline List redist_aList_beta::calc_betacompact(arma::vec new_dists,
 		      double denominator){
 
   /* Inputs to function:
-  
+
      new_dists: vector of the new cong district assignments
-     
+
      denominator: normalizing constant for rpi
-     
+
    */
-  
+
   double beta_compact = beta_sequence["compact"];
-  
+
   // Initialize psi values
   double psi_new = 0.0;
   double psi_old = 0.0;
@@ -405,9 +405,9 @@ inline List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
 
   /* Inputs to function:
      new_dists: vector of the new cong district assignments
-     
+
   */
-  
+
   double beta_segregation = beta_sequence["segregation"];
 
   // Initialize psi values
@@ -421,7 +421,7 @@ inline List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
   int T = sum(popvec);
   double pAll = (double) sum(grouppopvec) / T;
   double denom = (double)2 * T * pAll * (1 - pAll);
-  
+
   // Loop over congressional districts
   for(int i = 0; i < distswitch.size(); i++){
 
@@ -432,19 +432,19 @@ inline List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
     int newpopgroup = 0;
     arma::uvec new_cds = arma::find((new_dists) == distswitch(i));
     arma::uvec current_cds = arma::find((arma::vec) (cdvec) == distswitch(i));
-  
+
     // Segregation for proposed assignments
     for(int j = 0; j < new_cds.size(); j++){
       newpopall += popvec(new_cds(j));
       newpopgroup += grouppopvec(new_cds(j));
     }
-  
+
     // Segregation for current assignments
     for(int j = 0; j < current_cds.size(); j++){
       oldpopall += popvec(current_cds(j));
       oldpopgroup += grouppopvec(current_cds(j));
     }
-  
+
     // Calculate proportions
     // Rcout << "old population group " << oldpopgroup << std::endl;
     // Rcout << "old population all " << oldpopall << std::endl;
@@ -457,7 +457,7 @@ inline List redist_aList_beta::calc_betasegregation(arma::vec new_dists)
     psi_old += (double)(oldpopall * std::abs(oldgroupprop - pAll));
 
   }
-  
+
   // Standardize psi
   psi_new = (double) psi_new / denom;
   psi_old = (double) psi_old / denom;
@@ -480,12 +480,12 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 {
 
   /* Inputs to function:
-  
+
      new_dists: vector of the new cong district assignments
    */
-  
+
   double beta_similar = beta_sequence["similar"];
-  
+
   // Initialize psi values
   double psi_new = 0.0;
   double psi_old = 0.0;
@@ -520,7 +520,7 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
     // Calculate proportions
     double old_count_prop = (double) old_count / cdorigvec.size();
     double new_count_prop = (double) new_count / cdorigvec.size();
-    
+
     // Add to psi
     psi_new += (double) std::abs(new_count_prop - 1);
     psi_old += (double) std::abs(old_count_prop - 1);
@@ -546,23 +546,6 @@ inline List redist_aList_beta::calc_betasimilar(arma::vec new_dists)
 #endif
 
 
-
-<<<<<<< Updated upstream
-//// Expose classes to R:
-//RCPP_MODULE(redist_aList_beta_cpp){
-//  using namespace Rcpp;
-//  
-//  class_<redist_aList_beta>("redist_aList_beta")
-//    .default_constructor("Default Constructor")
-//    .method("update_weights", &redist_aList_beta::update_weights)
-//    .method("changeBeta", &redist_aList_beta::changeBeta)
-//    .method("calc_betapop", &redist_aList_beta::calc_betapop)
-//    .method("calc_betacompact", &redist_aList_beta::calc_betacompact)
-//    .method("calc_betasegregation", &redist_aList_beta::calc_betasegregation)
-//    .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
-//  ;
-//}
-=======
 // Expose classes to R:
 RCPP_MODULE(redist_aList_beta_cpp){
   using namespace Rcpp;
@@ -598,7 +581,3 @@ RCPP_MODULE(redist_aList_beta_cpp){
     .method("calc_betasimilar", &redist_aList_beta::calc_betasimilar)
   ;
 }
->>>>>>> Stashed changes
-//.method("", &redist_aList_beta::)
-
-
