@@ -1049,10 +1049,7 @@ inline int redist_aList::mh_decision(double prob)
 
 #endif 
 
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 // // Expose classes to R:
 // RCPP_MODULE(redist_aList_cpp){
 //   using namespace Rcpp;
