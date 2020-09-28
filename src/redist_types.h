@@ -79,6 +79,8 @@ class redist_aList_beta: public redist_aList{
     Rcpp::NumericVector get_beta_sequence();
     Rcpp::NumericVector get_beta_weights();
     double get_pct_dist_parity();
+    Rcpp::NumericVector get_distswitch();
+    int get_adjswap();
 
     void update_weights(double b, std::string s);
 
@@ -155,6 +157,22 @@ inline NumericVector redist_aList_beta::get_beta_weights()
   return beta_weights;
 
 }
+
+inline NumericVector redist_aList_beta::get_distswitch()
+{
+  
+  return distswitch;
+  
+}
+
+inline int redist_aList_beta::get_adjswap()
+{
+  
+  return adjswap;
+  
+}
+
+
 
 inline double redist_aList_beta::get_pct_dist_parity()
 {
@@ -551,6 +569,16 @@ RCPP_MODULE(redist_aList_beta_cpp){
   using namespace Rcpp;
   class_<redist_aList>( "redist_aList" )
     .default_constructor("Default Constructor")
+
+    .property( "aList", &redist_aList::get_aList )
+    .property( "cdorigvec", &redist_aList::get_cdorigvec )
+    .property( "cdvec", &redist_aList::get_cdvec )
+    .property( "popvec",&redist_aList::get_popvec )
+    .property( "cd_pop_vec", &redist_aList::get_cd_pop_vec )
+    .property( "eprob", &redist_aList::get_eprob ) 
+    .property( "mh_prob", &redist_aList::get_mh_prob )
+    .property( "lambda" , &redist_aList::get_lambda )
+    
     .method("init_pop", &redist_aList::init_pop)
     .method("genAlConn", &redist_aList::genAlConn)
     .method("findBoundary",&redist_aList::findBoundary)
@@ -573,6 +601,14 @@ RCPP_MODULE(redist_aList_beta_cpp){
   class_<redist_aList_beta>("redist_aList_beta")
     .derives<redist_aList>( "redist_aList" )
     .default_constructor("Default Constructor")
+    .property( "pct_dist_parity", &redist_aList_beta::get_pct_dist_parity )
+    .property( "grouppopvec", &redist_aList_beta::get_grouppopvec )
+    .property( "beta_sequence", &redist_aList_beta::get_beta_sequence )
+    .property( "ssdmat", &redist_aList_beta::get_ssdmat )
+    .property( "beta_weights", &redist_aList_beta::get_beta_weights )
+    .property( "distswitch", &redist_aList_beta::get_distswitch )
+    .property( "adjswap", &redist_aList_beta::get_adjswap )
+  
     .method("update_weights", &redist_aList_beta::update_weights)
     .method("changeBeta", &redist_aList_beta::changeBeta)
     .method("calc_betapop", &redist_aList_beta::calc_betapop)

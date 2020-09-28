@@ -68,6 +68,8 @@ class redist_aList {
     Rcpp::NumericVector get_popvec();
     int get_lambda();
     double get_eprob();
+    Rcpp::NumericVector get_cd_pop_vec();
+    double get_mh_prob();
         
     // Function to generate initial vector of populations
     Rcpp::NumericVector init_pop(arma::vec cds);
@@ -232,6 +234,20 @@ inline int redist_aList::get_lambda()
 {
   
   return lambda;
+  
+}
+
+inline NumericVector redist_aList::get_cd_pop_vec()
+{
+  
+  return cd_pop_vec;
+  
+}
+
+inline double redist_aList::get_mh_prob()
+{
+  
+  return mh_prob;
   
 }
 
