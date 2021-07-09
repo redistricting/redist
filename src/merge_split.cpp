@@ -43,7 +43,7 @@ Rcpp::List ms_plans(int N, List l, const uvec init, const uvec &counties, const 
         Rcout << "Sampling " << N-1 << " " << V << "-unit maps with " << n_distr
               << " districts and population between " << lower << " and " << upper << ".\n";
         if (cg.size() > 1)
-            Rcout << "Ensuring no more than " << n_distr - 1 << " splits of the "
+            Rcout << "Sampling hierarchically with respect to the "
                   << cg.size() << " administrative units.\n";
     }
 
@@ -58,15 +58,19 @@ Rcpp::List ms_plans(int N, List l, const uvec init, const uvec &counties, const 
     select_pair(n_distr, g, init, distr_1, distr_2);
     int refresh = std::max(N / 20, 1);
     int n_accept = 0;
+    int reject_ct;
     for (int i = 1; i < N; i++) {
         districts.col(i) = districts.col(i - 1); // copy over old map
 
         // make the proposal
         double prop_lp = 0.0;
+        reject_ct = 0;
         do {
             select_pair(n_distr, g, districts.col(i), distr_1, distr_2);
             prop_lp = split_map_ms(g, counties, cg, districts.col(i), distr_1,
                                    distr_2, pop, lower, upper, target, k);
+            if (reject_ct % 200 == 0) Rcpp::checkUserInterrupt();
+            reject_ct++;
         } while (!std::isfinite(prop_lp));
 
         // tau calculations
@@ -196,12 +200,13 @@ double split_map_ms(const Graph &g, const uvec &counties, Multigraph &cg,
     }
 
     int root;
-    ust = sample_sub_ust(g, ust, V, root, ignore, counties, cg);
+    ust = sample_sub_ust(g, ust, V, root, ignore, pop, lower, upper, counties, cg);
     if (ust.size() == 0) return -log(0.0);
 
     // set `lower` as a way to return population of new district
     bool success = cut_districts_ms(ust, k, root, districts, distr_1, distr_2,
                                     pop, total_pop, lower, upper, target);
+
     if (!success) return -log(0.0); // reject sample
 
     return orig_lb - log_boundary(g, districts, distr_1, distr_2);
@@ -280,6 +285,9 @@ void adapt_ms_parameters(const Graph &g, int n_distr, int &k, double thresh,
     int k_max = std::min(20 + ((int) std::sqrt(V)), V - 1); // heuristic
     int N_adapt = (int) std::floor(4000.0 / sqrt((double) V));
 
+    double lower = target * (1 - tol);
+    double upper = target * (1 + tol);
+
     std::vector<std::vector<double>> devs;
     vec distr_ok(k_max+1, fill::zeros);
     int root;
@@ -300,7 +308,7 @@ void adapt_ms_parameters(const Graph &g, int n_distr, int &k, double thresh,
             }
         }
 
-        ust = sample_sub_ust(g, ust, V, root, ignore, counties, cg);
+        ust = sample_sub_ust(g, ust, V, root, ignore, pop, lower, upper, counties, cg);
         if (ust.size() == 0) {
             i--;
             continue;

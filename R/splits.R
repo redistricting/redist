@@ -2,19 +2,12 @@
 #' @param plans A numeric vector (if only one map) or matrix with one row
 #' for each precinct and one column for each map. Required.
 #' @param counties A vector of county names or county ids.
-#' @param district_membership Deprecated, use plans. A numeric vector (if only one map) or matrix with one row
-#' for each precinct and one column for each map. Required.
 #'
 #' @return integer vector with one number for each map
 #'
 #' @concept analyze
 #' @export
-redist.splits <- function(plans, counties, district_membership) {
-    if (!missing(district_membership)) {
-        .Deprecated(new = 'plans', old = 'district_membership')
-        plans <- district_membership
-    }
-
+redist.splits <- function(plans, counties) {
     if (missing(plans)) {
         stop('Please provide an argument to plans.')
     }
@@ -53,5 +46,6 @@ redist.splits <- function(plans, counties, district_membership) {
 #' @concept analyze
 #' @export
 is_county_split = function(plan, counties) {
+    counties = as.integer(as.factor(counties))
     (tapply(plan, counties, FUN=function(y) length(unique(y))) > 1)[counties]
 }
